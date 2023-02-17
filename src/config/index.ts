@@ -13,3 +13,8 @@ export const CLOUDINARY_API_SECRET = process.env
 export const UPLOAD_PRESET = process.env.UPLOAD_PRESET as string;
 export const CLOUDINARY_UPLOAD_PRESET = process.env
   .CLOUDINARY_UPLOAD_PRESET as string;
+
+  // mongoDB
+  export const MONGO_DB_PATH = process.env.MONGO_DB_PATH as string;
+
+  export const NUMBER_OF_PROXIES = process.env.NUMBER_OF_PROXIES as string;
