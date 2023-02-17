@@ -1,6 +1,5 @@
-import compression, { CompressionOptions } from 'compression';
+import compressionMiddleware, { CompressionOptions } from 'compression';
 
-// eslint-disable-next-line
-export function compressResponses(options?: CompressionOptions) {
-  return compression(options);
+export function compression(options?: CompressionOptions) {
+  return compressionMiddleware(options);
 }

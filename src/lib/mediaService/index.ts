@@ -1,4 +1,4 @@
-import MediaService from './mediaService';
-import { MediaService as TFileService } from './types';
+import { mediaService } from './mediaService';
+import { MediaService } from './types';
 
-export { MediaService as FileService, TFileService };
+export { mediaService, MediaService };
