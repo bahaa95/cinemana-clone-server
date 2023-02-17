@@ -1,5 +1,9 @@
 export const NODE_ENV = process.env.NODE_ENV as string;
 
+// origins
+export const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN as string;
+export const DASHBORAD_ORIGIN = process.env.CLIENT_ORIGIN as string;
+
 // cloudinary
 export const CLOUDINARY_CLOUD_NAME = process.env
   .CLOUDINARY_CLOUD_NAME as string;
