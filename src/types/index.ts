@@ -1,4 +1,4 @@
-import { Request } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { Types } from 'mongoose';
 import { Roles } from '@/static/roles';
 
@@ -9,9 +9,15 @@ declare module 'express-serve-static-core' {
   }
 }
 
+export type Middleware = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => Promise<void> | void;
+
 export type File = { publicId: string; url: string };
 
-export type ObjectId = Types.ObjectId;
+export type ObjectId = Copy<Types.ObjectId>;
 
 export type Payload = {
   User: {
@@ -21,3 +27,5 @@ export type Payload = {
     email: string;
   };
 };
+
+export type Copy<T> = Pick<T, keyof T>;

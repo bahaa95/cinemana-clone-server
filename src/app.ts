@@ -1,5 +1,4 @@
-import express, { Application } from 'express';
-import { Router } from '@/static/router';
+import express, { Application,IRouter } from 'express';
 import { isProduction } from '@/utils/isProdection';
 import { NUMBER_OF_PROXIES } from '@/config';
 import { errorHandler } from '@/middleware/errorHandler';
@@ -14,7 +13,7 @@ export class App {
   private app: Application;
   private port: number;
 
-  constructor(_port: number, features: Router[]) {
+  constructor(_port: number, features: IRouter[]) {
     this.app = express();
     /* tslint:disable-next-line */
     isProduction() && this.app.set('trust proxy', NUMBER_OF_PROXIES);
@@ -47,7 +46,7 @@ export class App {
     this.app.get('/ip', (request, response) => response.send(request.ip));
   }
 
-  private setupFeatures(features: Router[]): void {
-    features.forEach((feature) => this.app.use('/api', feature.getRoutes()));
+  private setupFeatures(features: IRouter[]): void {
+    features.forEach((feature) => this.app.use('/api', feature));
   }
 }
