@@ -15,7 +15,7 @@ export function multer(options: Options) {
       const ext = path.extname(file.originalname);
 
       if (allowedExt.includes(ext)) {
-        cb(null, true);
+        return cb(null, true);
       }
       // @ts-ignore
       cb(new Error('File type is not supported.'), false);
