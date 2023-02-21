@@ -1,5 +1,6 @@
 import { UploadApiOptions, UploadApiResponse } from 'cloudinary';
 import { File } from '@/types';
+import { Request } from 'express';
 
 export type MediaService = {
   upload: Upload;
@@ -9,7 +10,7 @@ export type MediaService = {
 };
 
 export type Upload = (
-  file: string,
+  file: NonNullable<Request['file']>,
   options?: UploadApiOptions | undefined,
 ) => Promise<File>;
 
@@ -26,10 +27,12 @@ type DeleteApiOptions = {
 
 export type Update = (
   oldFilePublicId: string | undefined,
-  file: string,
+  file: NonNullable<Request['file']>,
   options?: UploadApiOptions,
 ) => Promise<File>;
 
-export type UploadMany = (...files: string[]) => Promise<File[]>;
+export type UploadMany = (
+  ...files: NonNullable<Request['file']>[]
+) => Promise<File[]>;
 
 export { UploadApiResponse };

@@ -7,13 +7,15 @@ import {
 } from './types';
 import { cloudinary } from './config';
 import { CLOUDINARY_UPLOAD_PRESET } from '@/config';
+import { convertToDataUri } from '@/utils/convertToDataUri';
 
 class MediaService implements TMediaService {
   private readonly uploadPreset = CLOUDINARY_UPLOAD_PRESET;
 
   upload: Upload = async (file, options?) => {
-    const uploadResponse = await cloudinary.uploader.upload(file, {
-      upload_preset: this.uploadPreset,
+    const dataURIFile = convertToDataUri(file);
+    const uploadResponse = await cloudinary.uploader.upload(dataURIFile, {
+      folder:this.uploadPreset,
       ...options,
     });
 
@@ -34,13 +36,13 @@ class MediaService implements TMediaService {
       await this.delete(oldFilePublicId);
     }
     // add new file
-    const fileObj = await this.upload(file, options);
-    return fileObj;
+    const newFile = await this.upload(file, options);
+    return newFile;
   };
 
   uploadMany: UploadMany = async (...files) => {
-    const responses = Promise.all(files.map((file) => this.upload(file)));
-    return responses;
+    const response = Promise.all(files.map((file) => this.upload(file)));
+    return response;
   };
 }
 
