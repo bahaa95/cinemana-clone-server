@@ -5,7 +5,12 @@ import { Roles } from '@/static/roles';
 // add User to request
 declare module 'express-serve-static-core' {
   interface Request {
-    User?: Payload['User'];
+    User?:{
+      _id: ObjectId;
+      username: string;
+      roles: Roles[];
+      email: string;
+    };
   }
 }
 
@@ -19,13 +24,11 @@ export type File = { publicId: string; url: string };
 
 export type ObjectId = Copy<Types.ObjectId>;
 
-export type Payload = {
-  User: {
-    _id: ObjectId;
-    username: string;
-    roles: Roles[];
-    email: string;
-  };
-};
-
 export type Copy<T> = Pick<T, keyof T>;
+
+/**
+ * Add _id property to type T
+ */
+export type Doc<T> = { _id: ObjectId } & T;
+
+export type ExpressFile = NonNullable<Request['file']>;
