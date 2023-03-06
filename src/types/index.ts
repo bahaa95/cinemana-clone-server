@@ -38,3 +38,5 @@ export type PayloadJWT = {
   iat: number;
   exp: number;
 };
+
+export type Combine<T1, T2> = T1 & T2;

@@ -20,6 +20,6 @@ export function multer(options: Options) {
       // @ts-ignore
       cb(new Error('File type is not supported.'), false);
     },
-    limits: { fileSize, fields: 10, files: 1 },
+    limits: { fileSize },
   });
 }
