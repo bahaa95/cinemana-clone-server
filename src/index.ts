@@ -7,6 +7,7 @@ import { setupCategories } from '@/features/categories';
 import { setupAdministrators } from '@/features/administrators';
 import { setupVideos } from '@/features/videos';
 import { setupSeasons } from '@/features/seasons';
+import { setupEpisodes } from '@/features/episodes';
 
 const app = new App(3030, [
   setupStaffRoles(),
@@ -15,5 +16,6 @@ const app = new App(3030, [
   setupAdministrators(),
   setupVideos(),
   setupSeasons(),
+  setupEpisodes(),
 ]);
 app.listen();
