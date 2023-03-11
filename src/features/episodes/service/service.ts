@@ -1,4 +1,4 @@
-import { EpisodeModel } from '../model';
+import { EpisodeDocument, EpisodeModel } from '../model';
 import { EpisodeService as IEpisodeService } from './types';
 
 // ! don't return the value for private methods to clients or admins it's for internal usage only.
@@ -40,6 +40,40 @@ export class EpisodeService implements IEpisodeService {
   public deleteEpisode: IEpisodeService['deleteEpisode'] = async (_id) => {
     let deletedEpisode = await this.Episode.findOneAndDelete({ _id });
     return deletedEpisode;
+  };
+
+  /**
+   * @access public dashboard
+   */
+  public deleteSeasonEpisodes: IEpisodeService['deleteSeasonEpisodes'] = async (
+    seasonId,
+  ) => {
+    // get episodes before deleting
+    let episodes = await this.Episode.aggregate<EpisodeDocument>([
+      { $match: { seasonId } },
+    ]);
+
+    // delete episodes
+    await this.Episode.deleteMany({ seasonId });
+
+    return episodes;
+  };
+
+  /**
+   * @access public dashboard
+   */
+  public deleteVideoEpisodes: IEpisodeService['deleteVideoEpisodes'] = async (
+    videoId,
+  ) => {
+    // get episodes before deleting
+    let episodes = await this.Episode.aggregate<EpisodeDocument>([
+      { $match: { videoId } },
+    ]);
+
+    // delete episodes
+    await this.Episode.deleteMany({ videoId });
+
+    return episodes;
   };
 
   /**

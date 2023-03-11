@@ -1,6 +1,6 @@
 import { lookupToRolesQuery } from '@/features/staff';
 
-export const projectVideoListItem = {
+export let projectVideoListItem = {
   poster: 1,
   title: 1,
   stars: 1,
@@ -8,7 +8,7 @@ export const projectVideoListItem = {
   releaseDate: 1,
 };
 
-export const lookupMainCategory = {
+export let lookupMainCategory = {
   from: 'categories',
   foreignField: '_id',
   localField: 'mainCategory',
@@ -16,7 +16,7 @@ export const lookupMainCategory = {
   pipeline: [{ $project: { __v: 0 } }],
 };
 
-export const lookupCategories = {
+export let lookupToCategories = {
   from: 'categories',
   foreignField: '_id',
   localField: 'categories',
@@ -24,7 +24,7 @@ export const lookupCategories = {
   pipeline: [{ $project: { __v: 0 } }],
 };
 
-export const lookupActors = {
+export let lookupActors = {
   from: 'staff',
   foreignField: '_id',
   localField: 'actors',
@@ -32,7 +32,7 @@ export const lookupActors = {
   pipeline: [{ $lookup: lookupToRolesQuery }, { $project: { __v: 0 } }],
 };
 
-export const lookupDirectors = {
+export let lookupDirectors = {
   from: 'staff',
   foreignField: '_id',
   localField: 'directors',
@@ -40,10 +40,31 @@ export const lookupDirectors = {
   pipeline: [{ $lookup: lookupToRolesQuery }, { $project: { __v: 0 } }],
 };
 
-export const lookupWriters = {
+export let lookupWriters = {
   from: 'staff',
   foreignField: '_id',
   localField: 'writers',
   as: 'writers',
   pipeline: [{ $lookup: lookupToRolesQuery }, { $project: { __v: 0 } }],
+};
+
+export let lookupToEpisodes = {
+  from: 'episodes',
+  foreignField: 'seasonId',
+  localField: '_id',
+  as: 'episodes',
+  pipeline: [{ $project: { __v: 0, videoId: 0, seasonId: 0 } }],
+};
+
+export let lookupToSeasons = {
+  from: 'seasons',
+  foreignField: 'videoId',
+  localField: '_id',
+  as: 'seasons',
+  pipeline: [
+    { $project: { _id: 1, season: 1 } },
+    {
+      $lookup: lookupToEpisodes,
+    },
+  ],
 };

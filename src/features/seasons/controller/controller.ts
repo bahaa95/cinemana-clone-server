@@ -1,19 +1,28 @@
 import { Request } from 'express';
-import { Middleware, ObjectId } from '@/types';
+import { Middleware } from '@/types';
 import { HttpError, statuses } from '@/lib/httperror';
 import { IVideoService } from '@/features/videos';
+import { IEpisodeService } from '@/features/episodes';
 import { ISeasonService } from '../service';
 import { SeasonController as ISeasonController } from './types';
 import { AddSeasonSchema, EditSeasonSchema } from '../validation';
 import { parseSeason } from '../utils/parseSeason';
+import { mediaService } from '@/lib/mediaService';
+import { convertToObjectId } from '@/utils/convertToObjectId';
 
 export class SeasonController implements ISeasonController {
   private readonly seasonService: ISeasonService;
   private readonly videoService: IVideoService;
+  private readonly episodeService: IEpisodeService;
 
-  constructor(_seasonService: ISeasonService, _videoService: IVideoService) {
+  constructor(
+    _seasonService: ISeasonService,
+    _videoService: IVideoService,
+    _episodeService: IEpisodeService,
+  ) {
     this.seasonService = _seasonService;
     this.videoService = _videoService;
+    this.episodeService = _episodeService;
   }
 
   public addSeason: Middleware = async (
@@ -38,7 +47,7 @@ export class SeasonController implements ISeasonController {
     next,
   ) => {
     try {
-      const _id = req.params._id as ObjectId;
+      const _id =  convertToObjectId(req.params._id);
       let { season } = req.body;
 
       // edit season in database
@@ -63,7 +72,7 @@ export class SeasonController implements ISeasonController {
 
   public deleteSeason: Middleware = async (req: Request<any>, res, next) => {
     try {
-      const _id = req.params._id as ObjectId;
+      const _id =  convertToObjectId(req.params._id);
 
       // delete season from database
       let deletedSeason = await this.seasonService.deleteSeason(_id);
@@ -76,6 +85,16 @@ export class SeasonController implements ISeasonController {
           feature: 'seasons',
         });
       }
+
+      // delete episodes for the season
+      let episodes = await this.episodeService.deleteSeasonEpisodes(
+        deletedSeason._id,
+      );
+
+      // delete images for episodes
+      episodes.forEach(
+        async (episode) => await mediaService.delete(episode.image.publicId),
+      );
 
       res.status(200).json(deletedSeason);
     } catch (error) {

@@ -14,21 +14,22 @@ export interface VideoService {
   deleteVideo: (_id: ObjectId) => Promise<VideoListItem | null>;
 
   getFullVideoDocument: (
-    _id: ObjectId,
-    isClient?: boolean,
+    query: VideoFilterQuery,
   ) => Promise<VideoDocument | null>;
 
-  getMovies: (query?: FilterQuery<IVideo>) => Promise<VideoList>;
+  getSimilarVideos: (query: VideoFilterQuery) => Promise<VideoList>;
 
-  getSeries: (query?: FilterQuery<IVideo>) => Promise<VideoList>;
+  getMovies: (query?: VideoFilterQuery) => Promise<VideoList>;
+
+  getSeries: (query?: VideoFilterQuery) => Promise<VideoList>;
 
   getSpecialVideos: () => Promise<SpecialVideo[]>;
 
-  searchVideo: (query?: FilterQuery<IVideo>) => Promise<VideoList>;
+  searchVideo: (query?: VideoFilterQuery) => Promise<VideoList>;
 
   getBasicVideoDocument: (_id: ObjectId) => Promise<BasicVideoDocument | null>;
 
-  getVideoListItem: (_id: ObjectId) => Promise<VideoListItem | undefined>;
+  getVideoListItem: (_id: ObjectId) => Promise<VideoListItem | null>;
 }
 
 export type VideoFilterQuery = FilterQuery<IVideo>;

@@ -1,15 +1,15 @@
 import zod, { TypeOf } from 'zod';
-import { jsonParse } from '@/utils/jsonParse';
-import { preProcessBoolean, preProcessDate } from './helper';
+import { preProcessBoolean, preProcessDate, preProcessArray } from './helper';
+import { isNumber } from '@/utils/isNumber';
 
-const _idSchema = zod
+let _idSchema = zod
   .string({
     required_error: '_id required.',
     invalid_type_error: 'Invalid _id.',
   })
   .regex(/^[0-9a-fA-F]{24}$/, 'Invalid _id.');
 
-const video = {
+let video = {
   isPublic: zod.preprocess(
     preProcessBoolean,
     zod.boolean({
@@ -50,7 +50,7 @@ const video = {
   }),
 
   stars: zod.preprocess(
-    (arg) => (arg ? jsonParse(arg) : undefined),
+    (value) => (isNumber(value) ? Number(value) : value),
     zod
       .number({
         required_error: 'Stars is required.',
@@ -106,7 +106,7 @@ const video = {
     .regex(/^[0-9a-fA-F]{24}$/, 'Invalid category.'),
 
   categories: zod.preprocess(
-    (e) => (e ? jsonParse(e) : undefined),
+    preProcessArray,
     zod
       .array(
         zod
@@ -122,7 +122,7 @@ const video = {
   ),
 
   actors: zod.preprocess(
-    (e) => (e ? jsonParse(e) : undefined),
+    preProcessArray,
     zod
       .array(
         zod
@@ -138,7 +138,7 @@ const video = {
   ),
 
   directors: zod.preprocess(
-    (e) => (e ? jsonParse(e) : undefined),
+    preProcessArray,
     zod
       .array(
         zod
@@ -154,7 +154,7 @@ const video = {
   ),
 
   writers: zod.preprocess(
-    (e) => (e ? jsonParse(e) : undefined),
+    preProcessArray,
     zod
       .array(
         zod
@@ -170,42 +170,42 @@ const video = {
   ),
 };
 
-export const addVideoSchema = zod.object({
+export let addVideoSchema = zod.object({
   body: zod.object({ ...video }),
 });
 
-export const deleteVideoSchema = zod.object({
+export let deleteVideoSchema = zod.object({
   params: zod.object({
     _id: _idSchema,
   }),
 });
 
-export const editVideoSchema = zod.object({
+export let editVideoSchema = zod.object({
   params: zod.object({
     _id: _idSchema,
   }),
   body: zod.object({ ...video }),
 });
 
-export const getVideoSchema = zod.object({
+export let getVideoSchema = zod.object({
   params: zod.object({
     _id: _idSchema,
   }),
 });
 
-export const getMoviesSchema = zod.object({
+export let getMoviesSchema = zod.object({
   query: zod.object({
     categoryId: _idSchema.optional(),
   }),
 });
 
-export const getSeriesSchema = zod.object({
+export let getSeriesSchema = zod.object({
   query: zod.object({
     categoryId: _idSchema.optional(),
   }),
 });
 
-export const searchSchema = zod.object({
+export let searchSchema = zod.object({
   query: zod.object({
     title: video.title.optional(),
     type: video.type.optional(),

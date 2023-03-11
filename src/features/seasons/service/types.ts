@@ -11,5 +11,7 @@ export interface SeasonService {
 
   deleteSeason: (_id: ObjectId) => Promise<SeasonDocument | null>;
 
+  deleteVideoSeasons: (videoId: ObjectId) => Promise<void>;
+
   getSeasons: () => Promise<SeasonDocument[]>;
 }

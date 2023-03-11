@@ -11,5 +11,9 @@ export interface EpisodeService {
 
   deleteEpisode: (_id: ObjectId) => Promise<EpisodeDocument | null>;
 
+  deleteSeasonEpisodes: (seasonId: ObjectId) => Promise<EpisodeDocument[]>;
+
+  deleteVideoEpisodes: (videoId: ObjectId) => Promise<EpisodeDocument[]>;
+
   getEpisodeById: (_id: ObjectId) => Promise<EpisodeDocument | null>;
 }

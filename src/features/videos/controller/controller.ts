@@ -1,6 +1,11 @@
 import { Request } from 'express';
-import { Middleware, File, ObjectId } from '@/types';
+import { Middleware, File } from '@/types';
 import { mediaService } from '@/lib/mediaService';
+import { ISeasonService } from '@/features/seasons';
+import { IEpisodeService } from '@/features/episodes';
+import { HttpError, statuses } from '@/lib/httperror';
+import { convertToObjectId } from '@/utils/convertToObjectId';
+import bear from '@/lib/bear/array';
 import { VideoController as IVideoController, VideoFiles } from './types';
 import { IVideoService, VideoFilterQuery } from '../service';
 import {
@@ -11,14 +16,21 @@ import {
   SearchSchema,
 } from '../validation';
 import { jsonParseVideo } from '../utils/jsonParseVideo';
-import { HttpError, statuses } from '@/lib/httperror';
-import { convertToObjectId } from '@/utils/convertToObjectId';
+import { BasicVideoDocument } from '../model';
 
 export class VideoController implements IVideoController {
   private readonly videoService: IVideoService;
+  private readonly seasonService: ISeasonService;
+  private readonly episodeService: IEpisodeService;
 
-  constructor(_videoService: IVideoService) {
+  constructor(
+    _videoService: IVideoService,
+    _seasonService: ISeasonService,
+    _episodeService: IEpisodeService,
+  ) {
     this.videoService = _videoService;
+    this.seasonService = _seasonService;
+    this.episodeService = _episodeService;
   }
 
   public addVideo: Middleware = async (
@@ -54,7 +66,7 @@ export class VideoController implements IVideoController {
 
   public deleteVideo: Middleware = async (req: Request<any>, res, next) => {
     try {
-      const _id = req.params._id as ObjectId;
+      const _id = convertToObjectId(req.params._id);
 
       // get video document before delete it
       let video = await this.videoService.getBasicVideoDocument(_id);
@@ -71,9 +83,27 @@ export class VideoController implements IVideoController {
       // delete video
       let deletedVideo = await this.videoService.deleteVideo(_id);
 
-      // delete poster and cover from mediaService
+      // delete poster and cover for video from mediaService
       await mediaService.delete(video.poster.publicId);
       await mediaService.delete(video.cover.publicId);
+
+      // return response if video type is movie
+      if (video.type === 'movie') {
+        res.status(200).json(deletedVideo);
+        return;
+      }
+
+      // if video type is series delete its seasons and episodes
+      // delete seasons for video
+      await this.seasonService.deleteVideoSeasons(video._id);
+
+      // delete episodes
+      let episodes = await this.episodeService.deleteVideoEpisodes(video._id);
+
+      // delete images for episodes
+      episodes.forEach(
+        async (episode) => await mediaService.delete(episode.image.publicId),
+      );
 
       // return response
       res.status(200).json(deletedVideo);
@@ -88,7 +118,7 @@ export class VideoController implements IVideoController {
     next,
   ) => {
     try {
-      const _id = req.params._id as ObjectId;
+      const _id = convertToObjectId(req.params._id);
       let data = jsonParseVideo(req.body);
       let files = req.files as VideoFiles;
 
@@ -145,13 +175,20 @@ export class VideoController implements IVideoController {
 
   public getVideo: Middleware = async (req: Request<any>, res, next) => {
     try {
-      const _id = req.params._id as ObjectId;
+      const _id = convertToObjectId(req.params._id);
+
+      let filterQuery: VideoFilterQuery = { _id: convertToObjectId(_id) };
 
       // check if the request for client
       const isClient = !req.originalUrl.split('/').includes('admin');
 
+      // get only public videos (isPublic=true) if the request for client
+      if (isClient) {
+        filterQuery.isPublic = true;
+      }
+
       // get the video from database
-      let video = await this.videoService.getFullVideoDocument(_id, isClient);
+      let video = await this.videoService.getFullVideoDocument(filterQuery);
 
       // throw HttpError if video not found
       if (!video) {
@@ -162,7 +199,30 @@ export class VideoController implements IVideoController {
         });
       }
 
-      res.status(200).json(video);
+      // get basic video document to use it for git similar videos
+      let basicVideoDocument = (await this.videoService.getBasicVideoDocument(
+        _id,
+      )) as BasicVideoDocument;
+
+      // get similar videos list
+      let similarVideos = await this.videoService.getSimilarVideos({
+        $and: [
+          { isPublic: true },
+          { type: basicVideoDocument.type },
+          { _id: { $ne: basicVideoDocument._id } },
+          { mainCategory: basicVideoDocument.mainCategory },
+          {
+            categories: {
+              $in: bear.remove(
+                basicVideoDocument.categories,
+                (category) => category === basicVideoDocument.mainCategory,
+              ),
+            },
+          },
+        ],
+      });
+
+      res.status(200).json({ video, similarVideos });
     } catch (error) {
       next(error);
     }

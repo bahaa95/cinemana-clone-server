@@ -1,20 +1,16 @@
-import { FilterQuery } from 'mongoose';
+import { PipelineStage } from 'mongoose';
 import { convertToObjectId } from '@/utils/convertToObjectId';
-import {
-  IVideo,
-  VideoModel,
-  BasicVideoDocument,
-  VideoDocument,
-} from '../model';
-import { SpecialVideo, VideoListItem } from '../types';
-import { VideoService as IVideoService } from './types';
+import { VideoModel, BasicVideoDocument, VideoDocument } from '../model';
+import { SpecialVideo, VideoList, VideoListItem } from '../types';
+import { VideoService as IVideoService, VideoFilterQuery } from './types';
 import {
   projectVideoListItem,
   lookupMainCategory,
-  lookupCategories,
+  lookupToCategories,
   lookupActors,
   lookupDirectors,
   lookupWriters,
+  lookupToSeasons,
 } from './query';
 
 // ! don't return the value for private method to clients and admins it's for internal usage only.
@@ -28,7 +24,7 @@ export class VideoService implements IVideoService {
   }
 
   /**
-   * @private
+   * @access private
    */
   public addVideo: IVideoService['addVideo'] = async (video) => {
     let newVideo = await new this.Video(video).save();
@@ -36,7 +32,7 @@ export class VideoService implements IVideoService {
   };
 
   /**
-   * @public
+   * @access public dashboard
    */
   public editVideo: IVideoService['editVideo'] = async (_id, video) => {
     let editedVideo = await this.Video.findOneAndUpdate(
@@ -57,7 +53,7 @@ export class VideoService implements IVideoService {
   };
 
   /**
-   * @public
+   * @access public dashboard
    */
   public deleteVideo: IVideoService['deleteVideo'] = async (_id) => {
     let video = await this.getVideoListItem(_id);
@@ -70,28 +66,24 @@ export class VideoService implements IVideoService {
   };
 
   /**
-   * @public
+   * @access public dashboard, cinmana client
    */
   public getFullVideoDocument: IVideoService['getFullVideoDocument'] = async (
-    _id,
-    isClient,
+    query,
   ) => {
-    let filterQuery: FilterQuery<IVideo> = { _id: convertToObjectId(_id) };
+    // get video document
+    let videoDocument = await this.getBasicVideoDocument(query._id);
 
-    // get only public videos (isPublic=true) if the request for client
-    if (isClient) {
-      filterQuery.isPublic = true;
-    }
-
-    let [video] = await this.Video.aggregate<VideoDocument>([
-      { $match: filterQuery },
+    // create pipline stages
+    let piplineStages: PipelineStage[] = [
+      { $match: query },
       // lookup to categories
       {
         $lookup: lookupMainCategory,
       },
       // lookup to categories
       {
-        $lookup: lookupCategories,
+        $lookup: lookupToCategories,
       },
       // lookup to staff to get actors
       {
@@ -107,7 +99,19 @@ export class VideoService implements IVideoService {
       },
       { $project: { __v: 0 } },
       { $unwind: '$mainCategory' },
-    ]);
+    ];
+
+    // add lookup to season stage if video is series type
+    if (videoDocument?.type === 'series') {
+      piplineStages = [
+        ...piplineStages,
+        {
+          $lookup: lookupToSeasons,
+        },
+      ];
+    }
+
+    let [video] = await this.Video.aggregate<VideoDocument>([...piplineStages]);
 
     if (!video) return null;
 
@@ -115,7 +119,24 @@ export class VideoService implements IVideoService {
   };
 
   /**
-   * @public
+   * @access public cinmana client
+   */
+  public getSimilarVideos: IVideoService['getSimilarVideos'] = async (
+    query,
+  ) => {
+    let similarVideos = await this.Video.aggregate<VideoListItem>([
+      { $match: query },
+      { $sample: { size: 25 } },
+      { $project: {...projectVideoListItem} },
+      { $lookup: lookupMainCategory },
+      { $unwind: '$mainCategory' },
+    ]);
+
+    return similarVideos;
+  };
+
+  /**
+   * @access public cinmana client
    */
   public getMovies: IVideoService['getMovies'] = async (query) => {
     let movies = await this.Video.aggregate<VideoListItem>([
@@ -131,7 +152,7 @@ export class VideoService implements IVideoService {
   };
 
   /**
-   * @public
+   * @access public cinmana client
    */
   public getSeries: IVideoService['getSeries'] = async (query) => {
     let series = await this.Video.aggregate<VideoListItem>([
@@ -147,7 +168,7 @@ export class VideoService implements IVideoService {
   };
 
   /**
-   * @public
+   * @access public cinmana client
    */
   public getSpecialVideos: IVideoService['getSpecialVideos'] = async () => {
     let specialVideos = await this.Video.aggregate<SpecialVideo>([
@@ -165,7 +186,7 @@ export class VideoService implements IVideoService {
   };
 
   /**
-   * @public
+   * @access public cinmana client
    */
   public searchVideo: IVideoService['searchVideo'] = async (query) => {
     let videos = await this.Video.aggregate<VideoListItem>([
@@ -181,13 +202,13 @@ export class VideoService implements IVideoService {
   };
 
   /**
-   * @private
+   * @access private
    */
   public getBasicVideoDocument: IVideoService['getBasicVideoDocument'] = async (
     _id,
   ) => {
     let [video] = await this.Video.aggregate<BasicVideoDocument>([
-      { $match: { _id: convertToObjectId(_id) } },
+      { $match: { _id } },
     ]);
 
     if (!video) return null;
@@ -196,7 +217,7 @@ export class VideoService implements IVideoService {
   };
 
   /**
-   * @private
+   * @access private
    */
   public getVideoListItem: IVideoService['getVideoListItem'] = async (_id) => {
     let [video] = await this.Video.aggregate<VideoListItem>([
@@ -209,6 +230,8 @@ export class VideoService implements IVideoService {
       },
       { $unwind: '$mainCategory' },
     ]);
+
+    if (!video) return null;
 
     return video;
   };
