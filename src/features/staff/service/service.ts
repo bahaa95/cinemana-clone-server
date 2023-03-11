@@ -1,8 +1,10 @@
 import { PersonDocument } from '../model';
-import { StaffService as IStaffService } from './types';
+import { StaffService as IStaffService, PersonAndVideos } from './types';
 import { StaffModel } from '../model';
-import { lookupToRolesQuery } from './query';
-import { convertToObjectId } from '@/utils/convertToObjectId';
+import { lookupToRoles, lookupToVideos } from './query';
+
+// ! don't return the value for private methods to clients or admins it's for internal usage only.
+// ! only return the value for public methods.
 
 export class StaffService implements IStaffService {
   private readonly Staff: StaffModel;
@@ -11,14 +13,20 @@ export class StaffService implements IStaffService {
     this.Staff = _Staff;
   }
 
-  addPerson: IStaffService['addPerson'] = async (person) => {
+  /**
+   * @access public dashboard
+   */
+  public addPerson: IStaffService['addPerson'] = async (person) => {
     const { _id } = await new this.Staff(person).save();
-    const newPerson = await this.getPerson(_id);
+    let newPerson = await this.getPerson(_id);
     return newPerson;
   };
 
-  editPerson: IStaffService['editPerson'] = async (_id, person) => {
-    const editedPerson = await this.Staff.findOneAndUpdate(
+  /**
+   * @access public dashboard
+   */
+  public editPerson: IStaffService['editPerson'] = async (_id, person) => {
+    let editedPerson = await this.Staff.findOneAndUpdate(
       { _id },
       { $set: person },
     );
@@ -28,13 +36,16 @@ export class StaffService implements IStaffService {
     }
 
     // return person document for edited person
-    const personDoc = await this.getPerson(editedPerson._id);
+    let personDoc = await this.getPerson(editedPerson._id);
     return personDoc;
   };
 
-  deletePerson: IStaffService['deletePerson'] = async (_id) => {
+  /**
+   * @access public dashboard
+   */
+  public deletePerson: IStaffService['deletePerson'] = async (_id) => {
     // get the person document before delete
-    const personDoc = await this.getPerson(_id);
+    let personDoc = await this.getPerson(_id);
 
     // return null if the person is not found
     if (!personDoc) {
@@ -46,41 +57,68 @@ export class StaffService implements IStaffService {
     return personDoc;
   };
 
-  getStaff: IStaffService['getStaff'] = async () => {
-    const staff = await this.Staff.aggregate<PersonDocument>([
+  /**
+   * @access public dashboard
+   */
+  public getStaff: IStaffService['getStaff'] = async () => {
+    let staff = await this.Staff.aggregate<PersonDocument>([
       { $match: {} },
       {
-        $lookup: {
-          ...lookupToRolesQuery,
-        },
+        $lookup: lookupToRoles,
       },
     ]);
 
     return staff;
   };
 
-  getStaffByRole: IStaffService['getStaffByRole'] = async (role) => {
-    const staff = await this.Staff.aggregate([
-      { $match: { roles: convertToObjectId(role) } },
+  /**
+   * @access public dashboard
+   */
+  public getStaffByRole: IStaffService['getStaffByRole'] = async (role) => {
+    let staff = await this.Staff.aggregate([
+      { $match: { roles: role } },
       {
-        $lookup: {
-          ...lookupToRolesQuery,
-        },
+        $lookup: lookupToRoles,
       },
     ]);
 
     return staff;
   };
 
-  getPerson: IStaffService['getPerson'] = async (_id) => {
-    const [person] = await this.Staff.aggregate<PersonDocument>([
-      { $match: { _id: convertToObjectId(_id) } },
+  /**
+   * @access public cinmana client
+   */
+  public getPerson: IStaffService['getPerson'] = async (_id) => {
+    let [person] = await this.Staff.aggregate<PersonDocument>([
+      { $match: { _id } },
       {
-        $lookup: {
-          ...lookupToRolesQuery,
-        },
+        $lookup: lookupToRoles,
       },
     ]);
+
+    return person;
+  };
+
+  public getPersonAndVideos: IStaffService['getPersonAndVideos'] = async (
+    _id,
+  ) => {
+    let [person] = await this.Staff.aggregate<PersonAndVideos>([
+      { $match: { _id } },
+      {
+        $lookup: lookupToRoles,
+      },
+      {
+        $lookup: lookupToVideos('actors', 'actorVideos'),
+      },
+      {
+        $lookup: lookupToVideos('writers', 'writerVideos'),
+      },
+      {
+        $lookup: lookupToVideos('directors', 'dierctorVideos'),
+      },
+    ]);
+
+    if (!person) return null;
 
     return person;
   };

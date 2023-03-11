@@ -9,6 +9,7 @@ import {
   deleteStaffSchema,
   editStaffSchema,
   getStaffByRoleSchema,
+  getPersonAndVideosSchema,
 } from '../validation';
 
 export class StaffRouter extends Router {
@@ -30,7 +31,7 @@ export class StaffRouter extends Router {
   protected initializeRoutes(): void {
     // add person to staff
     this.router.post(
-      this.path,
+      `/admin/dashboard${this.path}`,
       handleSingleImage('image'),
       ValidateFile(),
       validateResource(addStaffSchema),
@@ -39,7 +40,7 @@ export class StaffRouter extends Router {
 
     // edit person
     this.router.patch(
-      `${this.path}/:_id`,
+      `/admin/dashboard${this.path}/:_id`,
       handleSingleImage('image'),
       validateResource(editStaffSchema),
       this.staffController.editPerson,
@@ -47,19 +48,29 @@ export class StaffRouter extends Router {
 
     // delete person
     this.router.delete(
-      `${this.path}/:_id`,
+      `/admin/dashboard${this.path}/:_id`,
       validateResource(deleteStaffSchema),
       this.staffController.deletePerson,
     );
 
     // get staff
-    this.router.get(this.path, this.staffController.getStaff);
+    this.router.get(
+      `/admin/dashboard${this.path}`,
+      this.staffController.getStaff,
+    );
 
     // get staff by role
     this.router.get(
-      `${this.path}/roleId/:roleId`,
+      `/admin/dashboard${this.path}/roleId/:roleId`,
       validateResource(getStaffByRoleSchema),
       this.staffController.getStaffByRole,
+    );
+
+    // get person and videos
+    this.router.get(
+      `${this.path}/:_id`,
+      validateResource(getPersonAndVideosSchema),
+      this.staffController.getPersonAndVideos,
     );
   }
 }

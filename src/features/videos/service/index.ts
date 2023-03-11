@@ -6,4 +6,5 @@ export {
   lookupDirectors,
   lookupMainCategory,
   lookupWriters,
+  projectVideoListItem,
 } from './query';
