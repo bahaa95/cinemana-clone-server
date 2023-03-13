@@ -29,7 +29,7 @@ export let lookupActors = {
   foreignField: '_id',
   localField: 'actors',
   as: 'actors',
-  pipeline: [{ $lookup: lookupToRolesQuery }, { $project: { __v: 0 } }],
+  pipeline: [{ $project: { __v: 0, roles: 0 } }],
 };
 
 export let lookupDirectors = {
@@ -37,7 +37,7 @@ export let lookupDirectors = {
   foreignField: '_id',
   localField: 'directors',
   as: 'directors',
-  pipeline: [{ $lookup: lookupToRolesQuery }, { $project: { __v: 0 } }],
+  pipeline: [{ $project: { __v: 0, roles: 0 } }],
 };
 
 export let lookupWriters = {
@@ -45,7 +45,7 @@ export let lookupWriters = {
   foreignField: '_id',
   localField: 'writers',
   as: 'writers',
-  pipeline: [{ $lookup: lookupToRolesQuery }, { $project: { __v: 0 } }],
+  pipeline: [{ $project: { __v: 0, roles: 0 } }],
 };
 
 export let lookupToEpisodes = {
