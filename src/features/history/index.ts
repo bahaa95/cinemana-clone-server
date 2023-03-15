@@ -1,0 +1,1 @@
+export { setupHistory } from './setupHistory';
