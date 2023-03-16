@@ -1,5 +1,5 @@
 import { Schema, model, Types } from 'mongoose';
-import { Episode as IEpisode, EpisodeModel } from './types';
+import { Episode as IEpisode, EpisodeModel,EpisodeDocument } from './types';
 import { HttpError, statuses } from '@/lib/httperror';
 
 let EpisodeSchema = new Schema<IEpisode, EpisodeModel>(
@@ -22,7 +22,7 @@ EpisodeSchema.index(
   { name: 'episodeId', unique: true },
 );
 
-EpisodeSchema.post('save', (error: any, doc: IEpisode, next: any) => {
+EpisodeSchema.post('save', (error: any, doc: EpisodeDocument, next: any) => {
   if (error.code === 11000) {
     next(
       new HttpError({

@@ -14,7 +14,7 @@ import {
 import { AdministratorRoles } from '@/features/administrators';
 
 export class EpisodeRouter extends Router {
-  protected path = '/admin/dashboard/episode';
+  protected path = '/admin/dashboard/episodes';
   protected router: IRouter;
   private readonly episodesController: IEpisodeController;
 
