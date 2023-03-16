@@ -1,6 +1,6 @@
 import zod, { TypeOf } from 'zod';
 
-const body = zod.object({
+let adminstrator = {
   email: zod
     .string({
       invalid_type_error: 'Email must be a string.',
@@ -17,7 +17,7 @@ const body = zod.object({
     .min(8, 'Password must be at least 8 characters long.')
     .max(16, 'Password must not be more than 16 characters long.')
     .regex(/^\S.*[^\s]$/, 'Password must not start and end with space.'),
-});
+};
 
 const params = zod.object({
   _id: zod
@@ -29,20 +29,20 @@ const params = zod.object({
     .regex(/^[0-9a-fA-F]{24}$/, 'Invalid _id.'),
 });
 
-export const signupSchema = zod.object({
-  body,
+export let signupSchema = zod.object({
+  body: zod.object({ ...adminstrator }),
 });
 
-export const signinSchema = zod.object({
-  body,
+export let signinSchema = zod.object({
+  body: zod.object({ ...adminstrator }),
 });
 
-export const editAccountSchema = zod.object({
+export let editAccountSchema = zod.object({
   params,
-  body,
+  body: zod.object({ ...adminstrator }),
 });
 
-export const editRolesSchema = zod.object({
+export let editRolesSchema = zod.object({
   params,
   body: zod.object({
     roles: zod.preprocess(
@@ -56,7 +56,7 @@ export const editRolesSchema = zod.object({
   }),
 });
 
-export const toggleActivationSchema = zod.object({
+export let toggleActivationSchema = zod.object({
   params,
 });
 

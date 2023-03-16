@@ -15,7 +15,7 @@ import {
 import { AdministratorRoles } from '../roles';
 
 export class AdminstratorRouter extends Router {
-  protected readonly path = '/adminstrators';
+  protected readonly path = '/admin/dashboard/adminstrators';
   protected readonly router: IRouter;
   private readonly adminstratorController: IAdminstratorController;
 
@@ -36,7 +36,7 @@ export class AdminstratorRouter extends Router {
       `${this.path}/signup`,
       limiter({ max: 6, windowMs: 1000 * 60 * 60 }),
       validateResource(signupSchema),
-      this.adminstratorController.emailShouldNotExistBefore,
+      this.adminstratorController.emailMustNotExistBefore,
       this.adminstratorController.signup,
     );
 

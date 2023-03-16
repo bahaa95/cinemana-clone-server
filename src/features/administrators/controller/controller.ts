@@ -6,7 +6,6 @@ import { jwt } from '@/lib/jwt';
 import {
   ACCESS_TOKEN_PRIVATE_KEY,
   REFRESH_TOKEN_PRIVATE_KEY,
-  NODE_ENV,
   REFRESH_TOKEN_PUBLIC_KEY,
 } from '@/config';
 import { isProduction } from '@/utils/isProdection';
@@ -15,8 +14,13 @@ import {
   AdminstratorController as IAdminstratorController,
   Payload,
 } from './types';
-import { SignupSchema, EditAccountSchema, EditRolesSchema } from '../types';
+import {
+  SignupSchema,
+  EditAccountSchema,
+  EditRolesSchema,
+} from '../validation';
 import { parseRoles } from '../utils/parsRoles';
+import { convertToObjectId } from '@/utils/convertToObjectId';
 
 const cookieOptions: CookieOptions = {
   httpOnly: true,
@@ -39,11 +43,12 @@ export class AdminstratorController implements IAdminstratorController {
   ) => {
     try {
       const { email, password } = req.body;
+
       // hash password
       const hash = await bcrypt.hash(password);
 
-      // save adminstrator account to database
-      await this.adminstratorService.signUp({
+      // add adminstrator to database
+      await this.adminstratorService.addAdministrator({
         email,
         password: hash,
       });
@@ -62,10 +67,10 @@ export class AdminstratorController implements IAdminstratorController {
     next,
   ) => {
     try {
-      const { account } = req.Payload as Payload;
+      let { account } = req.Payload as Payload;
 
       // generate access token
-      const accessTokenPayload = {
+      let accessTokenPayload = {
         User: {
           _id: account._id,
           email: account.email,
@@ -83,7 +88,7 @@ export class AdminstratorController implements IAdminstratorController {
       );
 
       // generate refresh token
-      const refreshTokenPayload = {
+      let refreshTokenPayload = {
         User: {
           _id: account._id,
         },
@@ -115,14 +120,14 @@ export class AdminstratorController implements IAdminstratorController {
     next,
   ) => {
     try {
-      const _id = req.params._id as ObjectId;
-      const data = req.body;
+      const _id = convertToObjectId(req.params._id);
+      let data = req.body;
 
       // hash password
       const hash = await bcrypt.hash(data.password);
 
       // update account
-      const editedAccount = await this.adminstratorService.editAccount(_id, {
+      let editedAccount = await this.adminstratorService.editAccount(_id, {
         ...data,
         password: hash,
       });
@@ -148,14 +153,11 @@ export class AdminstratorController implements IAdminstratorController {
     next,
   ) => {
     try {
-      const _id = req.params._id as ObjectId;
-      const { roles } = req.body;
+      const _id = convertToObjectId(req.params._id);
+      let roles = parseRoles(req.body.roles);
 
       // edit roles
-      const editedAccount = await this.adminstratorService.editRoles(
-        _id,
-        parseRoles(roles),
-      );
+      let editedAccount = await this.adminstratorService.editRoles(_id, roles);
 
       // throw HttpError if account is not found
       if (!editedAccount) {
@@ -174,10 +176,10 @@ export class AdminstratorController implements IAdminstratorController {
 
   public toggleActivated: Middleware = async (req: Request<any>, res, next) => {
     try {
-      const _id = req.params._id as ObjectId;
+      const _id = convertToObjectId(req.params._id);
 
       // toggle activation
-      const editedAccount = await this.adminstratorService.toggleActivated(_id);
+      let editedAccount = await this.adminstratorService.toggleActivated(_id);
 
       // throw HttpError if account is not found
       if (!editedAccount) {
@@ -196,8 +198,8 @@ export class AdminstratorController implements IAdminstratorController {
 
   public getAccounts: Middleware = async (req, res, next) => {
     try {
-      // load accounts
-      const accounts = await this.adminstratorService.getAccounts();
+      // get accounts
+      let accounts = await this.adminstratorService.getAccounts();
 
       res.status(200).json(accounts);
     } catch (error) {
@@ -207,7 +209,7 @@ export class AdminstratorController implements IAdminstratorController {
 
   public refreshToken: Middleware = async (req, res, next) => {
     try {
-      const { cookies } = req;
+      let { cookies } = req;
 
       // throw HttpError if refreshToken cookie does not exist
       if (!cookies?.refreshToken) {
@@ -227,8 +229,8 @@ export class AdminstratorController implements IAdminstratorController {
       }
 
       // get adminstrator account
-      const { _id } = payload.User;
-      const adminstrator = await this.adminstratorService.getAccountById(_id);
+      const _id = convertToObjectId(payload.User._id);
+      let adminstrator = await this.adminstratorService.getAccount({ _id });
 
       // throw HttpError if adminstrator account not found
       if (!adminstrator) {
@@ -237,7 +239,7 @@ export class AdminstratorController implements IAdminstratorController {
       }
 
       // generate new accessToken
-      const accessTokenPayload = {
+      let accessTokenPayload = {
         User: {
           _id: adminstrator._id,
           email: adminstrator.email,
@@ -245,10 +247,14 @@ export class AdminstratorController implements IAdminstratorController {
         },
       };
 
-      const accessToken = await jwt.sign(accessTokenPayload, ACCESS_TOKEN_PRIVATE_KEY, {
-        algorithm: 'RS512',
-        expiresIn: '15m',
-      });
+      const accessToken = await jwt.sign(
+        accessTokenPayload,
+        ACCESS_TOKEN_PRIVATE_KEY,
+        {
+          algorithm: 'RS512',
+          expiresIn: '15m',
+        },
+      );
 
       res.status(200).json({ accessToken });
     } catch (error: any) {
@@ -256,13 +262,13 @@ export class AdminstratorController implements IAdminstratorController {
     }
   };
 
-  public emailShouldNotExistBefore: Middleware = async (
+  public emailMustNotExistBefore: Middleware = async (
     req: Request<any, {}, SignupSchema['body']>,
     res,
     next,
   ) => {
     try {
-      const _id = req.params._id as ObjectId | undefined;
+      const _id = convertToObjectId(req.params._id) as ObjectId | undefined;
       const { email } = req.body;
       const isExist = await this.adminstratorService.isEmailExist(email, _id);
 
@@ -290,7 +296,7 @@ export class AdminstratorController implements IAdminstratorController {
       const { email } = req.body;
 
       // get account by email
-      const account = await this.adminstratorService.getAccountByEmail(email);
+      let account = await this.adminstratorService.getAccount({ email });
 
       // throw HttpError if account not found
       if (!account) {
@@ -318,11 +324,11 @@ export class AdminstratorController implements IAdminstratorController {
   ) => {
     try {
       const { password } = req.body;
-      const { account } = req.Payload as Payload;
+      let { account } = req.Payload as Payload;
 
       // compare password
       const passwordMatch = await bcrypt.compare(password, account.password);
-      
+
       // throw HttpError if password not match
       if (!passwordMatch) {
         throw new HttpError({
@@ -340,7 +346,7 @@ export class AdminstratorController implements IAdminstratorController {
 
   public isAccountActivated: Middleware = async (req, res, next) => {
     try {
-      const { account } = req.Payload as Payload;
+      let { account } = req.Payload as Payload;
 
       // throw HttpError if account not activated
       if (!account.activated) {

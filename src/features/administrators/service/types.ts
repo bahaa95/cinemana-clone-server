@@ -1,8 +1,9 @@
+import { FilterQuery } from 'mongoose';
 import { ObjectId } from '@/types';
 import { IAdministrator, AdministratorDocument } from '../model';
 
 export interface AdministratorService {
-  signUp: (
+  addAdministrator: (
     administrator: Pick<IAdministrator, 'email' | 'password'>,
   ) => Promise<AdministratorDocument>;
 
@@ -20,14 +21,14 @@ export interface AdministratorService {
 
   getAccounts: () => Promise<AdministratorDocument[]>;
 
-  getAccountByEmail: (
-    email: IAdministrator['email'],
+  getAccount: (
+    query: AdministratorFilterQuery,
   ) => Promise<AdministratorDocument | null>;
-
-  getAccountById: (_id: ObjectId) => Promise<AdministratorDocument | null>;
 
   isEmailExist: (
     email: IAdministrator['email'],
     _id?: ObjectId,
   ) => Promise<boolean>;
 }
+
+export type AdministratorFilterQuery = FilterQuery<IAdministrator>;

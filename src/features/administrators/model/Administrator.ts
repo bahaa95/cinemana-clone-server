@@ -1,5 +1,9 @@
 import { Schema, model } from 'mongoose';
-import { Administrator as IAdministrator, AdministratorModel } from './types';
+import {
+  Administrator as IAdministrator,
+  AdministratorModel,
+  AdministratorDocument,
+} from './types';
 import { AdministratorRoles } from '../roles';
 import { HttpError, statuses } from '@/lib/httperror';
 
@@ -21,7 +25,7 @@ const AdministratorSchema = new Schema<IAdministrator, AdministratorModel>(
 
 AdministratorSchema.post(
   'save',
-  (error: any, doc: IAdministrator, next: any) => {
+  (error: any, doc: AdministratorDocument, next: any) => {
     if (error.code === 11000) {
       next(
         new HttpError({
@@ -38,7 +42,7 @@ AdministratorSchema.post(
 
 AdministratorSchema.post(
   'findOneAndUpdate',
-  (error: any, doc: IAdministrator, next: any) => {
+  (error: any, doc: AdministratorDocument, next: any) => {
     if (error.code === 11000) {
       next(
         new HttpError({

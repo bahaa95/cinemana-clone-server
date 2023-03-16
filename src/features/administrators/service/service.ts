@@ -1,11 +1,11 @@
-import { FilterQuery } from 'mongoose';
-import { convertToObjectId } from '@/utils/convertToObjectId';
+import { AdministratorDocument, AdministratorModel } from '../model';
 import {
-  AdministratorDocument,
-  AdministratorModel,
-  IAdministrator,
-} from '../model';
-import { AdministratorService as IAdministratorService } from './types';
+  AdministratorFilterQuery,
+  AdministratorService as IAdministratorService,
+} from './types';
+
+// ! don't return the value for private method to clients and admins it's for internal usage only.
+// ! only return the value for public methods.
 
 export class AdministratorService implements IAdministratorService {
   private readonly Administrator: AdministratorModel;
@@ -14,16 +14,24 @@ export class AdministratorService implements IAdministratorService {
     this.Administrator = _Administrator;
   }
 
-  public signUp: IAdministratorService['signUp'] = async (administrator) => {
-    const newAdministrator = await new this.Administrator(administrator).save();
+  /**
+   * @access private
+   */
+  public addAdministrator: IAdministratorService['addAdministrator'] = async (
+    administrator,
+  ) => {
+    let newAdministrator = await new this.Administrator(administrator).save();
     return newAdministrator;
   };
 
+  /**
+   * @access private
+   */
   public editAccount: IAdministratorService['editAccount'] = async (
     _id,
     administrator,
   ) => {
-    const editedAccount = await this.Administrator.findOneAndUpdate(
+    let editedAccount = await this.Administrator.findOneAndUpdate(
       { _id },
       { $set: administrator },
       { new: true },
@@ -32,8 +40,11 @@ export class AdministratorService implements IAdministratorService {
     return editedAccount;
   };
 
+  /**
+   * @access public dashboard
+   */
   public editRoles: IAdministratorService['editRoles'] = async (_id, roles) => {
-    const editedAdministrator = await this.Administrator.findOneAndUpdate(
+    let editedAdministrator = await this.Administrator.findOneAndUpdate(
       {
         _id,
       },
@@ -48,11 +59,14 @@ export class AdministratorService implements IAdministratorService {
     return editedAdministrator;
   };
 
+  /**
+   * @access public dashboard
+   */
   public toggleActivated: IAdministratorService['toggleActivated'] = async (
     _id,
   ) => {
     // get the administrator account
-    const account = await this.Administrator.findOne({ _id });
+    let account = await this.getAccount({ _id });
 
     // return null if the account not found
     if (!account) {
@@ -60,7 +74,7 @@ export class AdministratorService implements IAdministratorService {
     }
 
     // toggle activated
-    const editedAccount = await this.Administrator.findOneAndUpdate(
+    let editedAccount = await this.Administrator.findOneAndUpdate(
       {
         _id: account._id,
       },
@@ -75,8 +89,11 @@ export class AdministratorService implements IAdministratorService {
     return editedAccount;
   };
 
+  /**
+   * @access public dashboard
+   */
   public getAccounts: IAdministratorService['getAccounts'] = async () => {
-    const accounts = await this.Administrator.aggregate([
+    let accounts = await this.Administrator.aggregate([
       { $match: {} },
       { $project: { password: 0 } },
     ]);
@@ -84,33 +101,28 @@ export class AdministratorService implements IAdministratorService {
     return accounts;
   };
 
-  public getAccountByEmail: IAdministratorService['getAccountByEmail'] = async (
-    email,
-  ) => {
-    const [adminstartor] =
+  /**
+   * @access private
+   */
+  public getAccount: IAdministratorService['getAccount'] = async (query) => {
+    let [adminstartor] =
       await this.Administrator.aggregate<AdministratorDocument>([
-        { $match: { email } },
+        { $match: { ...query } },
       ]);
+
+    if (!adminstartor) return null;
 
     return adminstartor;
   };
 
-  public getAccountById: IAdministratorService['getAccountById'] = async (
-    _id,
-  ) => {
-    const [adminstartor] =
-      await this.Administrator.aggregate<AdministratorDocument>([
-        { $match: { _id: convertToObjectId(_id) } },
-      ]);
-
-    return adminstartor;
-  };
-
+  /**
+   * @access private
+   */
   public isEmailExist: IAdministratorService['isEmailExist'] = async (
     email,
     _id,
   ) => {
-    const filterQuery: FilterQuery<IAdministrator> = {
+    let filterQuery: AdministratorFilterQuery = {
       email,
     };
 
@@ -118,7 +130,7 @@ export class AdministratorService implements IAdministratorService {
       filterQuery._id = { $ne: { _id } };
     }
 
-    const account = await this.Administrator.findOne(filterQuery);
+    let account = await this.Administrator.findOne(filterQuery);
     const isExist = account ? true : false;
 
     return isExist;

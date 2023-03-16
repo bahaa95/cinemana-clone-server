@@ -9,7 +9,7 @@ export interface AdminstratorController {
   toggleActivated: Middleware;
   getAccounts: Middleware;
   refreshToken: Middleware;
-  emailShouldNotExistBefore: Middleware;
+  emailMustNotExistBefore: Middleware;
   isEmailExist: Middleware;
   comparePassword: Middleware;
   isAccountActivated: Middleware;
