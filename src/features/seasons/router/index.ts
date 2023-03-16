@@ -1,6 +1,5 @@
 import { IRouter, Router as router } from 'express';
 import { Router } from '@/static/router';
-import { limiter } from '@/middleware/limiter';
 import { verifyJwt } from '@/middleware/verifyJwt';
 import { verifyRoles } from '@/middleware/verifyRoles';
 import { AdministratorRoles } from '@/features/administrators';
@@ -13,7 +12,7 @@ import {
 } from '../validation';
 
 export class SeasonRouter extends Router {
-  protected readonly path = '/admin/dashboard/season';
+  protected readonly path = '/admin/dashboard/seasons';
   protected readonly router: IRouter;
   private readonly seasonController: ISeasonController;
 
