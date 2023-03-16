@@ -1,5 +1,9 @@
 import { Schema, model } from 'mongoose';
-import { Category as ICategory, CategoryModel } from './types';
+import {
+  Category as ICategory,
+  CategoryModel,
+  CategoryDocument,
+} from './types';
 import { HttpError, statuses } from '@/lib/httperror';
 
 const CategorySchema = new Schema<ICategory, CategoryModel>(
@@ -9,12 +13,12 @@ const CategorySchema = new Schema<ICategory, CategoryModel>(
   { timestamps: false },
 );
 
-CategorySchema.post('save', (error: any, doc: ICategory, next: any) => {
+CategorySchema.post('save', (error: any, doc: CategoryDocument, next: any) => {
   if (error.code === 11000) {
     next(
       new HttpError({
         status: statuses.Conflict,
-        message: `Add new category failed. Category with title ${doc?.title} is already exists.`,
+        message: `Add new category failed. Category with title ${error?.keyValue?.title} is already exists.`,
         feature: 'categories',
       }),
     );
@@ -25,12 +29,12 @@ CategorySchema.post('save', (error: any, doc: ICategory, next: any) => {
 
 CategorySchema.post(
   'findOneAndUpdate',
-  (error: any, doc: ICategory, next: any) => {
+  (error: any, doc: CategoryDocument, next: any) => {
     if (error.code === 11000) {
       next(
         new HttpError({
           status: statuses.Conflict,
-          message: `Edit category failed. Category with title ${doc?.title} is already exists.`,
+          message: `Edit category failed. Category with title ${error?.keyValue?.title} is already exists.`,
           feature: 'categories',
         }),
       );

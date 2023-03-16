@@ -5,5 +5,4 @@ export interface CategoryController {
   editCategory: Middleware;
   deleteCategory: Middleware;
   getCategories: Middleware;
-  shouldNotExistBefore: Middleware;
 }

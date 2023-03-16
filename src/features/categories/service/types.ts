@@ -9,5 +9,4 @@ export interface CategoryService {
   ) => Promise<CategoryDocument | null>;
   deleteCategory: (_id: ObjectId) => Promise<CategoryDocument | null>;
   getCategories: () => Promise<CategoryDocument[]>;
-  isExist: (title: ICategory['title'], _id?: ObjectId) => Promise<boolean>;
 }

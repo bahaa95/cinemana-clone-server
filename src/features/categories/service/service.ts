@@ -1,5 +1,8 @@
-import { CategoryModel } from '../model';
+import { CategoryDocument, CategoryModel } from '../model';
 import { CategoryService as ICategoryService } from './types';
+
+// ! don't return the value for private method to clients and admins it's for internal usage only.
+// ! only return the value for public methods.
 
 export class CategoryService implements ICategoryService {
   private readonly Category: CategoryModel;
@@ -8,13 +11,22 @@ export class CategoryService implements ICategoryService {
     this.Category = categoryModel;
   }
 
-  addCategory: ICategoryService['addCategory'] = async (category) => {
-    const newCategory = await new this.Category(category).save();
+  /**
+   * @access public dashboard
+   */
+  public addCategory: ICategoryService['addCategory'] = async (category) => {
+    let newCategory = await new this.Category(category).save();
     return newCategory;
   };
 
-  editCategory: ICategoryService['editCategory'] = async (_id, category) => {
-    const editedCategory = await this.Category.findOneAndUpdate(
+  /**
+   * @access public dashboard
+   */
+  public editCategory: ICategoryService['editCategory'] = async (
+    _id,
+    category,
+  ) => {
+    let editedCategory = await this.Category.findOneAndUpdate(
       { _id },
       {
         $set: category,
@@ -25,41 +37,22 @@ export class CategoryService implements ICategoryService {
     return editedCategory;
   };
 
-  deleteCategory: ICategoryService['deleteCategory'] = async (_id) => {
-    const deletedCategory = await this.Category.findByIdAndDelete({ _id });
+  /**
+   * @access public dashboard
+   */
+  public deleteCategory: ICategoryService['deleteCategory'] = async (_id) => {
+    let deletedCategory = await this.Category.findByIdAndDelete({ _id });
     return deletedCategory;
   };
 
-  getCategories: ICategoryService['getCategories'] = async () => {
-    const categories = await this.Category.aggregate([{ $match: {} }]);
+  /**
+   * @access public dashboard, cinemana-client
+   */
+  public getCategories: ICategoryService['getCategories'] = async () => {
+    let categories = await this.Category.aggregate<CategoryDocument>([
+      { $match: {} },
+    ]);
 
     return categories;
-  };
-
-  isExist: ICategoryService['isExist'] = async (title, _id) => {
-    if (_id) {
-      return await this.isExistWithId(title, _id);
-    }
-
-    // check if there is a category document have same title (use for add new category)
-    const category = await this.Category.findOne({
-      title,
-    });
-
-    const result = category ? true : false;
-    return result;
-  };
-
-  /*
-   * check if there is a category document with deferent _id have same title (use for edit existing category)
-  **/
-  private isExistWithId: ICategoryService['isExist'] = async (title, _id) => {
-    const category = await this.Category.findOne({
-      _id: { $ne: { _id } },
-      title,
-    });
-
-    const result = category ? true : false;
-    return result;
   };
 }

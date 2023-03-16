@@ -2,11 +2,15 @@ import { IRouter, Router as router } from 'express';
 import { Router } from '@/static/router';
 import { ICategoryController } from '../controller';
 import { validateResource } from '@/middleware/validateResource';
+import { limiter } from '@/middleware/limiter';
+import { verifyJwt } from '@/middleware/verifyJwt';
+import { verifyRoles } from '@/middleware/verifyRoles';
 import {
   addCategorySchema,
   editCategorySchema,
   deleteCategorySchema,
 } from '../validation';
+import { AdministratorRoles } from '@/features/administrators';
 
 export class CategoryRouter extends Router {
   protected readonly path = '/categories';
@@ -24,30 +28,56 @@ export class CategoryRouter extends Router {
     return this.router;
   }
   protected initializeRoutes(): void {
+    /**
+     * * dashboard
+     */
     // * add new category
     this.router.post(
-      this.path,
+      `/admin/dashboard${this.path}`,
+      verifyJwt,
+      verifyRoles(AdministratorRoles.Admin, AdministratorRoles.Data_Admin),
       validateResource(addCategorySchema),
-      this.categoryController.shouldNotExistBefore,
       this.categoryController.addCategory,
     );
 
     // * edit category
     this.router.patch(
-      `${this.path}/:_id`,
+      `/admin/dashboard${this.path}/:_id`,
+      verifyJwt,
+      verifyRoles(AdministratorRoles.Admin, AdministratorRoles.Data_Admin),
       validateResource(editCategorySchema),
-      this.categoryController.shouldNotExistBefore,
       this.categoryController.editCategory,
     );
 
     // * delete category
     this.router.delete(
-      `${this.path}/:_id`,
+      `/admin/dashboard${this.path}/:_id`,
+      verifyJwt,
+      verifyRoles(AdministratorRoles.Admin, AdministratorRoles.Data_Admin),
       validateResource(deleteCategorySchema),
       this.categoryController.deleteCategory,
     );
 
     // * get categories
-    this.router.get(this.path, this.categoryController.getCategories);
+    this.router.get(
+      `/admin/dashboard${this.path}`,
+      verifyJwt,
+      verifyRoles(
+        AdministratorRoles.Admin,
+        AdministratorRoles.Data_Admin,
+        AdministratorRoles.Viewers,
+      ),
+      this.categoryController.getCategories,
+    );
+
+    /**
+     * * cinemana client
+     */
+    // * get categories
+    this.router.get(
+      this.path,
+      limiter({ max: 100 }),
+      this.categoryController.getCategories,
+    );
   }
 }

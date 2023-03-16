@@ -1,15 +1,3 @@
-import { IRouter } from 'express';
-import { CategoryRouter } from './router';
-import { CategoryController } from './controller';
-import { CategoryService } from './service';
-import { Category } from './model';
-
-export { ICategory, CategoryDocument } from './model';
-
-export function setupCategories(): IRouter {
-  const router = new CategoryRouter(
-    new CategoryController(new CategoryService(Category)),
-  );
-
-  return router.getRoutes();
-}
+export { CategoryService, ICategoryService } from './service';
+export { setupCategories } from './setupCategories';
+export { Category, ICategory, CategoryDocument } from './model';

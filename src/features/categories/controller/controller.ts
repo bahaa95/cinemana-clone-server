@@ -2,8 +2,9 @@ import { Request } from 'express';
 import { Middleware, ObjectId } from '@/types';
 import { ICategoryService } from '../service';
 import { CategoryController as ICategoryController } from './types';
-import { AddCategorySchema, EditCategorySchema } from '../types';
+import { AddCategorySchema, EditCategorySchema } from '../validation';
 import { HttpError, statuses } from '@/lib/httperror';
+import { convertToObjectId } from '@/utils/convertToObjectId';
 
 export class CategoryController implements ICategoryController {
   private readonly categoryService: ICategoryService;
@@ -12,33 +13,35 @@ export class CategoryController implements ICategoryController {
     this.categoryService = _categoryService;
   }
 
-  addCategory: Middleware = async (
+  public addCategory: Middleware = async (
     req: Request<{}, {}, AddCategorySchema['body']>,
     res,
     next,
   ) => {
     try {
-      const data = req.body;
+      const { title } = req.body;
 
       // save category to database
-      const newCategory = await this.categoryService.addCategory(data);
+      let newCategory = await this.categoryService.addCategory({ title });
       res.status(201).json(newCategory);
     } catch (error) {
       next(error);
     }
   };
 
-  editCategory: Middleware = async (
+  public editCategory: Middleware = async (
     req: Request<any, {}, EditCategorySchema['body']>,
     res,
     next,
   ) => {
     try {
-      const _id = req.params._id as ObjectId;
-      const data = req.body;
+      const _id = convertToObjectId(req.params._id);
+      const { title } = req.body;
 
       // edit category
-      const editCategory = await this.categoryService.editCategory(_id, data);
+      let editCategory = await this.categoryService.editCategory(_id, {
+        title,
+      });
 
       // throw HttpError if category not found
       if (!editCategory) {
@@ -55,11 +58,12 @@ export class CategoryController implements ICategoryController {
     }
   };
 
-  deleteCategory: Middleware = async (req: Request<any>, res, next) => {
+  public deleteCategory: Middleware = async (req: Request<any>, res, next) => {
     try {
-      const _id = req.params._id as ObjectId;
+      const _id = convertToObjectId(req.params._id);
+
       // delete the category from database
-      const deletedCategory = await this.categoryService.deleteCategory(_id);
+      let deletedCategory = await this.categoryService.deleteCategory(_id);
 
       // throw HttpError if category not found
       if (!deletedCategory) {
@@ -76,38 +80,11 @@ export class CategoryController implements ICategoryController {
     }
   };
 
-  getCategories: Middleware = async (req, res, next) => {
+  public getCategories: Middleware = async (req, res, next) => {
     try {
       // get categories from database
-      const categories = await this.categoryService.getCategories();
+      let categories = await this.categoryService.getCategories();
       res.status(200).json(categories);
-    } catch (error) {
-      next(error);
-    }
-  };
-
-  shouldNotExistBefore: Middleware = async (
-    req: Request<any, {}, AddCategorySchema['body']>,
-    res,
-    next,
-  ) => {
-    try {
-      const _id = req.params._id as ObjectId | undefined;
-      const { title } = req.body;
-
-      // check if category is already exists
-      const isExist = await this.categoryService.isExist(title, _id);
-
-      // throw HttpError if category already exists
-      if (isExist) {
-        throw new HttpError({
-          status: statuses.Conflict,
-          message: `Category with title ${title} already exists.`,
-          feature: 'categories',
-        });
-      }
-
-      next();
     } catch (error) {
       next(error);
     }
