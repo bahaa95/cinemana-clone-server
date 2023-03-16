@@ -1,5 +1,9 @@
 import { Schema, model } from 'mongoose';
-import { StaffRole as IStaffRole, StaffRoleModel } from './types';
+import {
+  StaffRole as IStaffRole,
+  StaffRoleModel,
+  StaffRoleDocument,
+} from './types';
 import { HttpError, statuses } from '@/lib/httperror';
 
 const StaffRoleSchema = new Schema<IStaffRole, StaffRoleModel>(
@@ -11,41 +15,37 @@ const StaffRoleSchema = new Schema<IStaffRole, StaffRoleModel>(
   },
 );
 
-StaffRoleSchema.post('save', (error: any, doc: IStaffRole, next: any) => {
+StaffRoleSchema.post(
+  'save',
+  (error: any, doc: StaffRoleDocument, next: any) => {
     if (error.code === 11000) {
       next(
         new HttpError({
           status: statuses.Conflict,
-          message: 'Role is already exists',
+          message: `Add role failed. role ${error?.keyValue?.title} is already exists.`,
         }),
       );
     }
 
-    next(
-      new HttpError({
-        status: statuses.Bad_Request,
-        message: 'Something went wrong when adding new role.',
-      }),
-    );
-});
+    next(error);
+  },
+);
 
-StaffRoleSchema.post('findOneAndUpdate', (error: any, doc: IStaffRole, next: any) => {
+StaffRoleSchema.post(
+  'findOneAndUpdate',
+  (error: any, doc: StaffRoleDocument, next: any) => {
     if (error.code === 11000) {
       next(
         new HttpError({
           status: statuses.Conflict,
-          message: 'Role is already exists',
+          message: `Edit role failed. role ${error?.keyValue?.title} is already exists.`,
         }),
       );
     }
 
-    next(
-      new HttpError({
-        status: statuses.Bad_Request,
-        message: 'Something went wrong when adding new role.',
-      }),
-    );
-});
+    next(error);
+  },
+);
 
 export const StaffRole = model<IStaffRole, StaffRoleModel>(
   'StaffRole',
