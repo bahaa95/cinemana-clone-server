@@ -86,11 +86,11 @@ export class StaffService implements IStaffService {
   };
 
   /**
-   * @access public cinmana client
+   * @access public dashboard
    */
-  public getPerson: IStaffService['getPerson'] = async (_id) => {
+  public getPerson: IStaffService['getPerson'] = async (query) => {
     let [person] = await this.Staff.aggregate<PersonDocument>([
-      { $match: { _id } },
+      { $match: { ...query } },
       {
         $lookup: lookupToRoles,
       },
@@ -99,7 +99,10 @@ export class StaffService implements IStaffService {
     return person;
   };
 
-  public getPersonAndVideos: IStaffService['getPersonAndVideos'] = async (
+  /**
+   * @access public cinemana-client
+   */
+  public getPersonWithVideos: IStaffService['getPersonWithVideos'] = async (
     _id,
   ) => {
     let [person] = await this.Staff.aggregate<PersonAndVideos>([

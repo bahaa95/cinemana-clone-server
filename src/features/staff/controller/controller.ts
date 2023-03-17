@@ -3,9 +3,13 @@ import { Middleware, ExpressFile } from '@/types';
 import { mediaService } from '@/lib/mediaService';
 import { HttpError, statuses } from '@/lib/httperror';
 import { convertToObjectId } from '@/utils/convertToObjectId';
-import { IStaffService } from '../service';
+import { IStaffService, StaffFilterQuery } from '../service';
 import { StaffController as IStaffController } from './types';
-import { AddPersonSchema, EditPersonSchema } from '../types';
+import {
+  AddStaffSchema,
+  EditStaffSchema,
+  GetPersonSchema,
+} from '../validation';
 import { parseRoles } from '../utils/parsRoles';
 import { uniqueVideos } from '../utils/uniqueVideos';
 
@@ -17,16 +21,16 @@ export class StaffController implements IStaffController {
   }
 
   public addPerson: Middleware = async (
-    req: Request<{}, {}, AddPersonSchema['body']>,
+    req: Request<{}, {}, AddStaffSchema['body']>,
     res,
     next,
   ) => {
     try {
-      let data = req.body;
+      let { name, roles } = req.body;
       // add person to database
       let newPerson = await this.staffService.addPerson({
-        name: data.name,
-        roles: parseRoles(data.roles),
+        name,
+        roles: parseRoles(roles),
       });
 
       // upload person image to mediaService
@@ -43,18 +47,18 @@ export class StaffController implements IStaffController {
   };
 
   public editPerson: Middleware = async (
-    req: Request<any, {}, EditPersonSchema['body']>,
+    req: Request<any, {}, EditStaffSchema['body']>,
     res,
     next,
   ) => {
     try {
       const _id = convertToObjectId(req.params._id);
-      let data = req.body;
+      let { name, roles } = req.body;
 
       // edit person in database
       let editedPerson = await this.staffService.editPerson(_id, {
-        ...data,
-        roles: parseRoles(data.roles),
+        name,
+        roles: parseRoles(roles),
       });
 
       // throw HttpError if person is not found
@@ -138,7 +142,7 @@ export class StaffController implements IStaffController {
     try {
       const _id = convertToObjectId(req.params._id);
 
-      let person = await this.staffService.getPersonAndVideos(_id);
+      let person = await this.staffService.getPersonWithVideos(_id);
 
       // throw HttpError if person is not found
       if (!person) {
@@ -150,9 +154,40 @@ export class StaffController implements IStaffController {
       }
 
       let { actorVideos, dierctorVideos, writerVideos, ...personInfo } = person;
-      let videos =uniqueVideos([...actorVideos, ...dierctorVideos, ...writerVideos]);
+      let videos = uniqueVideos([
+        ...actorVideos,
+        ...dierctorVideos,
+        ...writerVideos,
+      ]);
 
       res.status(200).json({ ...personInfo, videos });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  public getPerson: Middleware = async (
+    req: Request<{}, {}, {}, GetPersonSchema['query']>,
+    res,
+    next,
+  ) => {
+    try {
+      const { _id, name } = req.query;
+
+      let query: StaffFilterQuery = {};
+
+      if (_id) query._id = _id;
+      if (name) query.name = name;
+
+      // get person
+      let person = await this.staffService.getPerson(query);
+
+      // throw HttpError if person not found
+      if (!person) {
+        throw new HttpError({ status: statuses.Not_Found });
+      }
+
+      res.status(200).json(person);
     } catch (error) {
       next(error);
     }

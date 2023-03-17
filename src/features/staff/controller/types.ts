@@ -7,4 +7,5 @@ export interface StaffController {
   getStaff: Middleware;
   getStaffByRole: Middleware;
   getPersonAndVideos: Middleware;
+  getPerson: Middleware;
 }

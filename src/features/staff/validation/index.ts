@@ -69,6 +69,14 @@ export let getPersonAndVideosSchema = zod.object({
   }),
 });
 
+export let getPersonSchema = zod.object({
+  query: zod.object({
+    _id: params._id.optional(),
+    name: person.name.optional(),
+  }),
+});
+
 export type AddStaffSchema = TypeOf<typeof addStaffSchema>;
 export type EditStaffSchema = TypeOf<typeof editStaffSchema>;
 export type DeleteStaffSchema = TypeOf<typeof deleteStaffSchema>;
+export type GetPersonSchema = TypeOf<typeof getPersonSchema>;
