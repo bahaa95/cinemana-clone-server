@@ -18,7 +18,7 @@ export class StaffService implements IStaffService {
    */
   public addPerson: IStaffService['addPerson'] = async (person) => {
     const { _id } = await new this.Staff(person).save();
-    let newPerson = await this.getPerson(_id);
+    let newPerson = await this.getPerson({_id});
     return newPerson;
   };
 
@@ -36,7 +36,7 @@ export class StaffService implements IStaffService {
     }
 
     // return person document for edited person
-    let personDoc = await this.getPerson(editedPerson._id);
+    let personDoc = await this.getPerson({_id:editedPerson._id});
     return personDoc;
   };
 
@@ -45,7 +45,7 @@ export class StaffService implements IStaffService {
    */
   public deletePerson: IStaffService['deletePerson'] = async (_id) => {
     // get the person document before delete
-    let personDoc = await this.getPerson(_id);
+    let personDoc = await this.getPerson({_id});
 
     // return null if the person is not found
     if (!personDoc) {
