@@ -20,9 +20,9 @@ import { IUserService } from '../service';
 
 const cookieOptions: CookieOptions = {
   httpOnly: true,
-  sameSite: 'none',
+  sameSite: 'lax',
   secure: isProduction(),
-  maxAge: 1000 * 60 * 60 * 24,
+  maxAge: 1000 * 60 * 60 * 24 * 7,
 };
 
 export class UserController implements IUserController {
@@ -135,7 +135,11 @@ export class UserController implements IUserController {
         ...cookieOptions,
       });
 
-      res.status(202).json({ message: 'Sign in successfully.', accessToken });
+      res.status(202).json({
+        message: 'Sign in successfully.',
+        accessToken,
+        userName: user.username,
+      });
     } catch (error) {
       next(error);
     }
@@ -206,7 +210,7 @@ export class UserController implements IUserController {
         },
       );
 
-      res.status(202).json({ accessToken });
+      res.status(202).json({ accessToken, userName: user.username });
     } catch (error) {
       next(error);
     }

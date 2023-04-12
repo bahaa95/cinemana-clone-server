@@ -60,8 +60,8 @@ export class UserRouter extends Router {
     this.router.post(
       `${this.path}/refreshToken`,
       limiter({
-        max: 5,
-        windowMs: 1000 * 60 * 60,
+        max: 60,
+        windowMs: 1000 * 60 * 20,
       }),
       this.usersController.refreshToken,
     );
