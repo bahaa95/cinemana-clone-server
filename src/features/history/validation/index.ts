@@ -36,4 +36,11 @@ export let editHistorySchema = zod.object({
   }),
 });
 
+export let getHistorySchema = zod.object({
+  params: zod.object({
+    videoId: history.videoId,
+  }),
+});
+
 export type EditHistorySchema = TypeOf<typeof editHistorySchema>;
+export type GetHistorySchema = TypeOf<typeof getHistorySchema>;

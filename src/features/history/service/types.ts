@@ -3,6 +3,10 @@ import { VideoListItem } from '@/features/videos';
 import { HistoryDocument, IHistory } from '../model';
 
 export interface HistoryService {
+  getHistory: (
+    id: IHistory['id'],
+  ) => Promise<Pick<HistoryDocument, '_id' | 'favorite' | 'watchList'> | null>;
+
   editHistory: (
     id: IHistory['id'],
     history: Partial<IHistory>,

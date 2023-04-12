@@ -3,6 +3,8 @@ import { Middleware } from '@/types';
 import { EditHistorySchema } from '../validation';
 
 export interface HistoryController {
+  getHistory: Middleware;
+
   editHistory: (
     req: Request<{}, {}, EditHistorySchema['body'], EditHistorySchema['query']>,
     res: Response,

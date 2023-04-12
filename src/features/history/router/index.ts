@@ -4,7 +4,7 @@ import { limiter } from '@/middleware/limiter';
 import { verifyJwt } from '@/middleware/verifyJwt';
 import { validateResource } from '@/middleware/validateResource';
 import { IHistoryController } from '../controller';
-import { editHistorySchema } from '../validation';
+import { editHistorySchema, getHistorySchema } from '../validation';
 
 export class HistoryRouter extends Router {
   protected path = '/history';
@@ -23,6 +23,15 @@ export class HistoryRouter extends Router {
   }
 
   protected initializeRoutes(): void {
+    // get history for video
+    this.router.get(
+      `${this.path}/videoId/:videoId`,
+      limiter({ max: 250 }),
+      verifyJwt,
+      validateResource(getHistorySchema),
+      this.historyController.getHistory,
+    );
+
     // edit history
     this.router.patch(
       this.path,
@@ -35,7 +44,7 @@ export class HistoryRouter extends Router {
     // get favorites videos
     this.router.get(
       `${this.path}/favorites`,
-      limiter(),
+      limiter({ max: 100 }),
       verifyJwt,
       this.historyController.getFavoriteVideos,
     );
@@ -43,7 +52,7 @@ export class HistoryRouter extends Router {
     // get watch list
     this.router.get(
       `${this.path}/watchList`,
-      limiter(),
+      limiter({ max: 100 }),
       verifyJwt,
       this.historyController.getWatchList,
     );

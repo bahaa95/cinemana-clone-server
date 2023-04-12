@@ -4,6 +4,8 @@ import { createId } from '../utils/createId';
 import { convertToObjectId } from '@/utils/convertToObjectId';
 import { IHistoryService } from '../service';
 import { Middleware } from '@/types';
+import { Request } from 'express';
+import { HttpError, statuses } from '@/lib/httperror';
 
 export class HistoryController implements IHistoryController {
   private readonly historyService: IHistoryService;
@@ -11,6 +13,32 @@ export class HistoryController implements IHistoryController {
   constructor(_historyService: IHistoryService) {
     this.historyService = _historyService;
   }
+
+  public getHistory: IHistoryController['getHistory'] = async (
+    req: Request<any>,
+    res,
+    next,
+  ) => {
+    try {
+      const userId = convertToObjectId(req.User._id);
+      const videoId = convertToObjectId(req.params?.videoId);
+      const id = createId(userId, videoId);
+
+      // get history
+      let history = await this.historyService.getHistory(id);
+
+      if (!history) {
+        throw new HttpError({
+          status: statuses.Not_Found,
+          message: 'There is no history available',
+        });
+      }
+
+      res.status(200).json(history);
+    } catch (error) {
+      next(error);
+    }
+  };
 
   public editHistory: IHistoryController['editHistory'] = async (
     req,

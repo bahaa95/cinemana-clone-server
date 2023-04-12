@@ -1,5 +1,5 @@
 import { VideoListItem } from '@/features/videos';
-import { HistoryModel } from '../model';
+import { HistoryModel, HistoryDocument } from '../model';
 import { HistoryService as IHistoryService } from './types';
 import { lookupToVideos, projectHistory } from './query';
 
@@ -9,6 +9,22 @@ export class HistoryService implements IHistoryService {
   constructor(_HistoryModel: HistoryModel) {
     this.History = _HistoryModel;
   }
+
+  /**
+   * @access public cinemana-client
+   */
+  public getHistory: IHistoryService['getHistory'] = async (id) => {
+    let [historyDocument] = await this.History.aggregate<HistoryDocument>([
+      { $match: { id } },
+      { $project: { _id: 1, favorite: 1, watchList: 1 } },
+    ]);
+
+    if (!historyDocument) {
+      return null;
+    }
+
+    return historyDocument;
+  };
 
   /**
    * @access public cinemana-client
