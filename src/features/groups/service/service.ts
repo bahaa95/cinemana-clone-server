@@ -1,6 +1,6 @@
 import { GroupDocument, GroupModel } from '../model';
 import { GroupService as IGroupService } from './types';
-import { lookupToVideos } from './query';
+import { lookupMainCategory, projectVideoListItem } from '@/features/videos';
 
 export class GroupService implements IGroupService {
   private readonly Group: GroupModel;
@@ -73,7 +73,18 @@ export class GroupService implements IGroupService {
       { $match: { _id } },
       { $project: { __v: 0 } },
       {
-        $lookup: lookupToVideos,
+        $lookup: {
+          from: 'videos',
+          foreignField: '_id',
+          localField: 'videos',
+          as: 'videos',
+          pipeline: [
+            { $project: projectVideoListItem },
+            { $lookup: lookupMainCategory },
+            { $unwind: '$mainCategory' },
+            { $sort: { releaseDate: -1 } },
+          ],
+        },
       },
     ]);
 
@@ -91,7 +102,18 @@ export class GroupService implements IGroupService {
         { $match: {} },
         { $project: { __v: 0 } },
         {
-          $lookup: lookupToVideos,
+          $lookup: {
+            from: 'videos',
+            foreignField: '_id',
+            localField: 'videos',
+            as: 'videos',
+            pipeline: [
+              { $project: projectVideoListItem },
+              { $lookup: lookupMainCategory },
+              { $unwind: '$mainCategory' },
+              { $sort: { releaseDate: -1 } },
+            ],
+          },
         },
       ]);
 
