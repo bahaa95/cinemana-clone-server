@@ -127,7 +127,7 @@ export class VideoService implements IVideoService {
     let similarVideos = await this.Video.aggregate<VideoListItem>([
       { $match: query },
       { $sample: { size: 25 } },
-      { $project: {...projectVideoListItem} },
+      { $project: { ...projectVideoListItem } },
       { $lookup: lookupMainCategory },
       { $unwind: '$mainCategory' },
     ]);
@@ -146,6 +146,7 @@ export class VideoService implements IVideoService {
         $project: projectVideoListItem,
       },
       { $unwind: '$mainCategory' },
+      { $sort: { releaseDate: -1 } },
     ]);
 
     return movies;
@@ -162,6 +163,7 @@ export class VideoService implements IVideoService {
         $project: projectVideoListItem,
       },
       { $unwind: '$mainCategory' },
+      { $sort: { releaseDate: -1 } },
     ]);
 
     return series;
@@ -179,7 +181,17 @@ export class VideoService implements IVideoService {
           specialExpire: { $gte: new Date() },
         },
       },
-      { $project: { _id: 1, title: 1, description: 1, stars: 1, cover: 1 } },
+      {
+        $project: {
+          _id: 1,
+          title: 1,
+          description: 1,
+          stars: 1,
+          cover: 1,
+          uploadDate: 1,
+        },
+      },
+      { $sort: { uploadDate: -1 } },
     ]);
 
     return specialVideos;
@@ -196,6 +208,7 @@ export class VideoService implements IVideoService {
         $lookup: lookupMainCategory,
       },
       { $unwind: '$mainCategory' },
+      { $sort: { releaseDate: -1 } },
     ]);
 
     return videos;

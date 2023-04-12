@@ -210,15 +210,7 @@ export class VideoController implements IVideoController {
           { isPublic: true },
           { type: basicVideoDocument.type },
           { _id: { $ne: basicVideoDocument._id } },
-          { mainCategory: basicVideoDocument.mainCategory },
-          {
-            categories: {
-              $in: bear.remove(
-                basicVideoDocument.categories,
-                (category) => category === basicVideoDocument.mainCategory,
-              ),
-            },
-          },
+          { mainCategory: { $in: basicVideoDocument.categories } },
         ],
       });
 
