@@ -10,7 +10,7 @@ let person = {
     .trim()
     .min(1, 'Name must be at least 1 character long.')
     .max(40, 'Name must be at most 40 characters long.')
-    .regex(/^[a-z\s]+$/, 'Use only [a-z, space] characters in name.'),
+    .regex(/^[a-zA-Z\.\s]+$/, 'Use only [a-z, space] characters in name.'),
 
   roles: zod.preprocess(
     (e) => (e ? (typeof e === 'string' ? JSON.parse(e) : e) : undefined),
