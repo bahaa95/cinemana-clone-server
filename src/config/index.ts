@@ -20,9 +20,16 @@ export const MONGO_DB_PATH = process.env.MONGO_DB_PATH as string;
 export const NUMBER_OF_PROXIES = process.env.NUMBER_OF_PROXIES as string;
 
 // access token keys
-export const ACCESS_TOKEN_PRIVATE_KEY = process.env.ACCESS_TOKEN_PRIVATE_KEY as string;
-export const ACCESS_TOKEN_PUBLIC_KEY = process.env.ACCESS_TOKEN_PUBLIC_KEY as string;
+export const ACCESS_TOKEN_PRIVATE_KEY = process.env
+  .ACCESS_TOKEN_PRIVATE_KEY as string;
+export const ACCESS_TOKEN_PUBLIC_KEY = process.env
+  .ACCESS_TOKEN_PUBLIC_KEY as string;
+
+// sentry
+export const SENTRY_DSN = process.env.SENTRY_DSN as string;
 
 // refresh token keys
-export const REFRESH_TOKEN_PRIVATE_KEY = process.env.REFRESH_TOKEN_PRIVATE_KEY as string;
-export const REFRESH_TOKEN_PUBLIC_KEY = process.env.REFRESH_TOKEN_PUBLIC_KEY as string;
+export const REFRESH_TOKEN_PRIVATE_KEY = process.env
+  .REFRESH_TOKEN_PRIVATE_KEY as string;
+export const REFRESH_TOKEN_PUBLIC_KEY = process.env
+  .REFRESH_TOKEN_PUBLIC_KEY as string;

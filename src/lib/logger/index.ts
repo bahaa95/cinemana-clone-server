@@ -1,6 +1,8 @@
 import { createLogger, format, transports, Logger } from 'winston';
 const { timestamp, combine, printf, errors, json, prettyPrint } = format;
 import { isDevelopment } from '@/utils/isDevelopment';
+import Sentry from 'winston-transport-sentry-node';
+import { SENTRY_DSN } from '@/config/index';
 
 class WinstonLogger {
   public logger: Logger;
@@ -31,8 +33,15 @@ class WinstonLogger {
     return createLogger({
       level: 'info',
       format: combine(timestamp(), errors({ stack: true }), json()),
-      defaultMeta: { service: 'Portofolio Server' },
-      transports: [],
+      defaultMeta: { service: 'cinemana-clone server' },
+      transports: [
+        new Sentry({
+          sentry: {
+            dsn: SENTRY_DSN,
+          },
+          level: 'info',
+        }),
+      ],
       exitOnError: false,
     });
   }

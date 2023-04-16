@@ -13,11 +13,11 @@ export function errorHandler(
 ) {
   if (HttpError.isValid(err)) {
     const error = err as HttpErrorOpject;
-    logger.http(error.message, error);
+    isDevelopment() && logger.http(error.message, error);
     res.status(error.status).json(isProduction() ? error.toClient() : error);
   } else {
     logger.error(err?.message, err);
     /* tslint:disable-next-line */
-    isDevelopment() === true && process.exit(1);
+    process.exit(1);
   }
 }

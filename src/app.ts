@@ -1,4 +1,4 @@
-import express, { Application,IRouter } from 'express';
+import express, { Application, IRouter } from 'express';
 import { isProduction } from '@/utils/isProdection';
 import { NUMBER_OF_PROXIES } from '@/config';
 import { errorHandler } from '@/middleware/errorHandler';
@@ -8,6 +8,12 @@ import { cors } from '@/middleware/cors';
 import { helmet } from '@/middleware/helmet';
 import { compression } from '@/middleware/compression';
 import { logger } from '@/lib/logger';
+import {
+  setupSentry,
+  errorHandler as sentryErrorHandler,
+  requestHandler,
+  tracingHandler,
+} from '@/lib/sentry';
 
 export class App {
   private app: Application;
@@ -18,10 +24,12 @@ export class App {
     /* tslint:disable-next-line */
     isProduction() && this.app.set('trust proxy', NUMBER_OF_PROXIES);
     this.port = _port;
+    setupSentry(this.app);
 
     this.connectToDB();
     this.setupMiddleware();
     this.setupFeatures(features);
+    isProduction() && this.app.use(sentryErrorHandler());
     this.app.use(errorHandler);
   }
 
@@ -44,6 +52,10 @@ export class App {
     this.app.use(compression());
     // limiters purpose (a test endpoint that returns the client IP)
     this.app.get('/ip', (request, response) => response.send(request.ip));
+
+    // sentry
+    isProduction() && this.app.use(requestHandler());
+    isProduction() && this.app.use(tracingHandler());
   }
 
   private setupFeatures(features: IRouter[]): void {

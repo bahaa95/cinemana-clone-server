@@ -2,6 +2,7 @@
   "extends": ["tslint:recommended", "tslint-config-prettier"],
   "rules": {
     "prefer-const": false,
-    "no-string-literal":false
+    "no-string-literal":false,
+    "no-unused-expression":false
   }
 }
