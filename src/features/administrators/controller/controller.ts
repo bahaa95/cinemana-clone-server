@@ -8,7 +8,7 @@ import {
   REFRESH_TOKEN_PRIVATE_KEY,
   REFRESH_TOKEN_PUBLIC_KEY,
 } from '@/config';
-import { isProduction } from '@/utils/isProdection';
+import { isProduction } from '@/utils/isProduction';
 import { IAdministratorService } from '../service';
 import {
   AdminstratorController as IAdminstratorController,

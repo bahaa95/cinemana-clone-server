@@ -1,6 +1,5 @@
 import express, { Application, IRouter } from 'express';
-import { isProduction } from '@/utils/isProdection';
-import { NUMBER_OF_PROXIES } from '@/config';
+import { NUMBER_OF_PROXIES,NODE_ENV } from '@/config';
 import { errorHandler } from '@/middleware/errorHandler';
 import { connectToDatabase } from '@/utils/connectToDatabase';
 import cookieParser from 'cookie-parser';
@@ -21,15 +20,14 @@ export class App {
 
   constructor(_port: number, features: IRouter[]) {
     this.app = express();
-    /* tslint:disable-next-line */
-    isProduction() && this.app.set('trust proxy', NUMBER_OF_PROXIES);
+    this.app.set('trust proxy', NUMBER_OF_PROXIES);
     this.port = _port;
     setupSentry(this.app);
 
     this.connectToDB();
     this.setupMiddleware();
     this.setupFeatures(features);
-    isProduction() && this.app.use(sentryErrorHandler());
+    NODE_ENV === 'production' &&  this.app.use(sentryErrorHandler());
     this.app.use(errorHandler);
   }
 
@@ -54,8 +52,8 @@ export class App {
     this.app.get('/ip', (request, response) => response.send(request.ip));
 
     // sentry
-    isProduction() && this.app.use(requestHandler());
-    isProduction() && this.app.use(tracingHandler());
+    NODE_ENV === 'production' &&  this.app.use(requestHandler());
+    NODE_ENV === 'production' &&  this.app.use(tracingHandler());
   }
 
   private setupFeatures(features: IRouter[]): void {
