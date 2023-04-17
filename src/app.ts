@@ -20,6 +20,7 @@ export class App {
 
   constructor(_port: number, features: IRouter[]) {
     this.app = express();
+    this.app.enable('trust proxy');
     this.app.set('trust proxy', NUMBER_OF_PROXIES);
     this.port = _port;
     setupSentry(this.app);
