@@ -24,7 +24,7 @@ import { convertToObjectId } from '@/utils/convertToObjectId';
 
 const cookieOptions: CookieOptions = {
   httpOnly: true,
-  sameSite: 'none',
+  sameSite: isProduction() ? 'none' : 'lax',
   secure: isProduction(),
   maxAge: 1000 * 60 * 60 * 24,
 };

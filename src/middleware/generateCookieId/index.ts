@@ -9,7 +9,7 @@ export const generateCookieId: Middleware = (req, res, next) => {
   if (!cookies?.id) {
     res.cookie('id', uuidv4(), {
       httpOnly: true,
-      sameSite: 'lax',
+      sameSite: isProduction() ? 'none' : 'lax',
       secure: isProduction(),
       maxAge: 1000 * 60 * 60 * 24 * 30,
     });

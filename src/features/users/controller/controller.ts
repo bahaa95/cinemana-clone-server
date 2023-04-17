@@ -20,7 +20,7 @@ import { IUserService } from '../service';
 
 const cookieOptions: CookieOptions = {
   httpOnly: true,
-  sameSite: 'lax',
+  sameSite: isProduction() ? 'none' : 'lax',
   secure: isProduction(),
   maxAge: 1000 * 60 * 60 * 24 * 7,
 };
