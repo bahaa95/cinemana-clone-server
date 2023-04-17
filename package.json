@@ -1,6 +1,6 @@
 {
   "name": "cinemana-clone-server",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "scripts": {
     "start": "node build/index.js",
     "start:dev": "npm run build && npx nodemon",
