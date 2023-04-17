@@ -105,5 +105,10 @@ dist
 
 yarn.lock
 package-lock.json
-build
 .nvmrc
+.husky
+src/
+.prettierrc
+nodemon.json
+tsconfig.json
+tslint.json
