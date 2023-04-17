@@ -7,6 +7,7 @@ export function limiter(options: Partial<Options> = {}) {
     max: options.max || 50,
     standardHeaders: true,
     legacyHeaders: true,
+    keyGenerator: (req, res) => req.cookies?.id,
     /* tslint:disable-next-line */
     handler: (request, response, next, options) =>
       response.status(options.statusCode).json({
