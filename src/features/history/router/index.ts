@@ -1,4 +1,3 @@
-import { IRouter, Router as router } from 'express';
 import { Router } from '@/static/router';
 import { limiter } from '@/middleware/limiter';
 import { verifyJwt } from '@/middleware/verifyJwt';
@@ -6,20 +5,10 @@ import { validateResource } from '@/middleware/validateResource';
 import { IHistoryController } from '../controller';
 import { editHistorySchema, getHistorySchema } from '../validation';
 
-export class HistoryRouter extends Router {
-  protected path = '/history';
-  protected router: IRouter;
-  private readonly historyController: IHistoryController;
-
-  constructor(_historyController: IHistoryController) {
-    super();
-    this.router = router();
-    this.historyController = _historyController;
+export class HistoryRouter extends Router<IHistoryController> {
+  constructor(historyController: IHistoryController) {
+    super('/history', historyController);
     this.initializeRoutes();
-  }
-
-  public getRoutes(): IRouter {
-    return this.router;
   }
 
   protected initializeRoutes(): void {
@@ -29,7 +18,7 @@ export class HistoryRouter extends Router {
       limiter({ max: 250 }),
       verifyJwt,
       validateResource(getHistorySchema),
-      this.historyController.getHistory,
+      this.controller.getHistory,
     );
 
     // edit history
@@ -38,7 +27,7 @@ export class HistoryRouter extends Router {
       limiter(),
       verifyJwt,
       validateResource(editHistorySchema),
-      this.historyController.editHistory,
+      this.controller.editHistory,
     );
 
     // get favorites videos
@@ -46,7 +35,7 @@ export class HistoryRouter extends Router {
       `${this.path}/favorites`,
       limiter({ max: 100 }),
       verifyJwt,
-      this.historyController.getFavoriteVideos,
+      this.controller.getFavoriteVideos,
     );
 
     // get watch list
@@ -54,7 +43,7 @@ export class HistoryRouter extends Router {
       `${this.path}/watchList`,
       limiter({ max: 100 }),
       verifyJwt,
-      this.historyController.getWatchList,
+      this.controller.getWatchList,
     );
   }
 }

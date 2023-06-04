@@ -1,4 +1,3 @@
-import { IRouter, Router as router } from 'express';
 import { Router } from '@/static/router';
 import { validateResource } from '@/middleware/validateResource';
 import { limiter } from '@/middleware/limiter';
@@ -6,20 +5,10 @@ import { verifyJwt } from '@/middleware/verifyJwt';
 import { IUserController } from '../controller';
 import { signupSchema, signinSchema } from '../vlaidation';
 
-export class UserRouter extends Router {
-  protected path = '/users';
-  protected router: IRouter;
-  private readonly usersController: IUserController;
-
-  constructor(_usersController: IUserController) {
-    super();
-    this.router = router();
-    this.usersController = _usersController;
+export class UserRouter extends Router<IUserController> {
+  constructor(usersController: IUserController) {
+    super('/users', usersController);
     this.initializeRoutes();
-  }
-
-  public getRoutes(): IRouter {
-    return this.router;
   }
 
   protected initializeRoutes(): void {
@@ -31,7 +20,7 @@ export class UserRouter extends Router {
         windowMs: 1000 * 60 * 60,
       }),
       validateResource(signupSchema),
-      this.usersController.signUp,
+      this.controller.signUp,
     );
 
     // signin
@@ -42,7 +31,7 @@ export class UserRouter extends Router {
         windowMs: 1000 * 60 * 60,
       }),
       validateResource(signinSchema),
-      this.usersController.signIn,
+      this.controller.signIn,
     );
 
     // log out
@@ -53,7 +42,7 @@ export class UserRouter extends Router {
         windowMs: 1000 * 60 * 60,
       }),
       verifyJwt,
-      this.usersController.logOut,
+      this.controller.logOut,
     );
 
     // refresh token
@@ -63,7 +52,7 @@ export class UserRouter extends Router {
         max: 60,
         windowMs: 1000 * 60 * 20,
       }),
-      this.usersController.refreshToken,
+      this.controller.refreshToken,
     );
   }
 }

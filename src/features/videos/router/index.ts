@@ -1,4 +1,3 @@
-import { IRouter, Router as router } from 'express';
 import { Router } from '@/static/router';
 import { limiter } from '@/middleware/limiter';
 import { verifyJwt } from '@/middleware/verifyJwt';
@@ -18,26 +17,16 @@ import {
 } from '../validation/validation';
 import { AdministratorRoles } from '@/features/administrators';
 
-export class VideoRouter extends Router {
-  protected path = '';
-  protected router: IRouter;
-  private readonly videoController: IVideoController;
-
-  constructor(_videoController: IVideoController) {
-    super();
-    this.router = router();
-    this.videoController = _videoController;
+export class VideoRouter extends Router<IVideoController> {
+  constructor(videoController: IVideoController) {
+    super('', videoController);
     this.initializeRoutes();
   }
 
-  public getRoutes(): IRouter {
-    return this.router;
-  }
   protected initializeRoutes(): void {
     /**
      * * dashbord
      */
-
     // add new video
     this.router.post(
       '/admin/dashboard/videos',
@@ -49,7 +38,7 @@ export class VideoRouter extends Router {
       ]),
       ValidateFiles('poster', 'cover'),
       validateResource(addVideoSchema),
-      this.videoController.addVideo,
+      this.controller.addVideo,
     );
 
     // delete video
@@ -58,7 +47,7 @@ export class VideoRouter extends Router {
       verifyJwt,
       verifyRoles(AdministratorRoles.Admin, AdministratorRoles.Data_Admin),
       validateResource(deleteVideoSchema),
-      this.videoController.deleteVideo,
+      this.controller.deleteVideo,
     );
 
     // edit video
@@ -71,7 +60,7 @@ export class VideoRouter extends Router {
         { name: 'cover', maxCount: 1 },
       ]),
       validateResource(editVideoSchema),
-      this.videoController.editVideo,
+      this.controller.editVideo,
     );
 
     // get video
@@ -84,7 +73,7 @@ export class VideoRouter extends Router {
         AdministratorRoles.Viewers,
       ),
       validateResource(getVideoSchema),
-      this.videoController.getVideo,
+      this.controller.getVideo,
     );
 
     /**
@@ -96,7 +85,7 @@ export class VideoRouter extends Router {
       '/video/_id/:_id',
       limiter(),
       validateResource(getVideoSchema),
-      this.videoController.getVideo,
+      this.controller.getVideo,
     );
 
     // get movies
@@ -104,7 +93,7 @@ export class VideoRouter extends Router {
       '/movies',
       limiter(),
       validateResource(getMoviesSchema),
-      this.videoController.getMovies,
+      this.controller.getMovies,
     );
 
     // get series
@@ -112,14 +101,14 @@ export class VideoRouter extends Router {
       '/series',
       limiter(),
       validateResource(getSeriesSchema),
-      this.videoController.getSeries,
+      this.controller.getSeries,
     );
 
     // get special videos
     this.router.get(
       '/specials',
       limiter({ max: 100 }),
-      this.videoController.getSpecialVideos,
+      this.controller.getSpecialVideos,
     );
 
     // search
@@ -127,7 +116,7 @@ export class VideoRouter extends Router {
       '/search',
       limiter({ max: 1000 }),
       validateResource(searchSchema),
-      this.videoController.searchVideo,
+      this.controller.searchVideo,
     );
   }
 }

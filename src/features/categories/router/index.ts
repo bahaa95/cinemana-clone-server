@@ -1,4 +1,3 @@
-import { IRouter, Router as router } from 'express';
 import { Router } from '@/static/router';
 import { ICategoryController } from '../controller';
 import { validateResource } from '@/middleware/validateResource';
@@ -12,21 +11,12 @@ import {
 } from '../validation';
 import { AdministratorRoles } from '@/features/administrators';
 
-export class CategoryRouter extends Router {
-  protected readonly path = '/categories';
-  protected readonly router: IRouter;
-  private readonly categoryController: ICategoryController;
-
-  constructor(_categoryController: ICategoryController) {
-    super();
-    this.categoryController = _categoryController;
-    this.router = router();
+export class CategoryRouter extends Router<ICategoryController> {
+  constructor(categoryController: ICategoryController) {
+    super('/categories', categoryController);
     this.initializeRoutes();
   }
 
-  public getRoutes(): IRouter {
-    return this.router;
-  }
   protected initializeRoutes(): void {
     /**
      * * dashboard
@@ -37,7 +27,7 @@ export class CategoryRouter extends Router {
       verifyJwt,
       verifyRoles(AdministratorRoles.Admin, AdministratorRoles.Data_Admin),
       validateResource(addCategorySchema),
-      this.categoryController.addCategory,
+      this.controller.addCategory,
     );
 
     // * edit category
@@ -46,7 +36,7 @@ export class CategoryRouter extends Router {
       verifyJwt,
       verifyRoles(AdministratorRoles.Admin, AdministratorRoles.Data_Admin),
       validateResource(editCategorySchema),
-      this.categoryController.editCategory,
+      this.controller.editCategory,
     );
 
     // * delete category
@@ -55,7 +45,7 @@ export class CategoryRouter extends Router {
       verifyJwt,
       verifyRoles(AdministratorRoles.Admin, AdministratorRoles.Data_Admin),
       validateResource(deleteCategorySchema),
-      this.categoryController.deleteCategory,
+      this.controller.deleteCategory,
     );
 
     // * get categories
@@ -67,7 +57,7 @@ export class CategoryRouter extends Router {
         AdministratorRoles.Data_Admin,
         AdministratorRoles.Viewers,
       ),
-      this.categoryController.getCategories,
+      this.controller.getCategories,
     );
 
     /**
@@ -77,7 +67,7 @@ export class CategoryRouter extends Router {
     this.router.get(
       this.path,
       limiter({ max: 100 }),
-      this.categoryController.getCategories,
+      this.controller.getCategories,
     );
   }
 }

@@ -1,4 +1,3 @@
-import { IRouter, Router as router } from 'express';
 import { Router } from '@/static/router';
 import { validateResource } from '@/middleware/validateResource';
 import { verifyJwt } from '@/middleware/verifyJwt';
@@ -14,20 +13,10 @@ import {
 } from '../validation';
 import { AdministratorRoles } from '../roles';
 
-export class AdminstratorRouter extends Router {
-  protected readonly path = '/admin/dashboard/adminstrators';
-  protected readonly router: IRouter;
-  private readonly adminstratorController: IAdminstratorController;
-
-  constructor(_adminstratorController: IAdminstratorController) {
-    super();
-    this.router = router();
-    this.adminstratorController = _adminstratorController;
+export class AdminstratorRouter extends Router<IAdminstratorController> {
+  constructor(adminstratorController: IAdminstratorController) {
+    super('/admin/dashboard/adminstrators', adminstratorController);
     this.initializeRoutes();
-  }
-
-  public getRoutes(): IRouter {
-    return this.router;
   }
 
   protected initializeRoutes(): void {
@@ -36,8 +25,8 @@ export class AdminstratorRouter extends Router {
       `${this.path}/signup`,
       limiter({ max: 6, windowMs: 1000 * 60 * 60 }),
       validateResource(signupSchema),
-      this.adminstratorController.emailMustNotExistBefore,
-      this.adminstratorController.signup,
+      this.controller.emailMustNotExistBefore,
+      this.controller.signup,
     );
 
     // signin
@@ -45,10 +34,10 @@ export class AdminstratorRouter extends Router {
       `${this.path}/signin`,
       limiter({ max: 10, windowMs: 1000 * 60 * 60 }),
       validateResource(signinSchema),
-      this.adminstratorController.isEmailExist,
-      this.adminstratorController.comparePassword,
-      this.adminstratorController.isAccountActivated,
-      this.adminstratorController.signin,
+      this.controller.isEmailExist,
+      this.controller.comparePassword,
+      this.controller.isAccountActivated,
+      this.controller.signin,
     );
 
     // edit account
@@ -57,7 +46,7 @@ export class AdminstratorRouter extends Router {
       limiter({ max: 15, windowMs: 1000 * 60 * 60 }),
       verifyJwt,
       validateResource(editAccountSchema),
-      this.adminstratorController.editAccount,
+      this.controller.editAccount,
     );
 
     // toggle account activation
@@ -66,7 +55,7 @@ export class AdminstratorRouter extends Router {
       verifyJwt,
       verifyRoles(AdministratorRoles.Admin),
       validateResource(toggleActivationSchema),
-      this.adminstratorController.toggleActivated,
+      this.controller.toggleActivated,
     );
 
     // edit roles
@@ -75,7 +64,7 @@ export class AdminstratorRouter extends Router {
       verifyJwt,
       verifyRoles(AdministratorRoles.Admin),
       validateResource(editRolesSchema),
-      this.adminstratorController.editRoles,
+      this.controller.editRoles,
     );
 
     // get accounts
@@ -83,13 +72,10 @@ export class AdminstratorRouter extends Router {
       this.path,
       verifyJwt,
       verifyRoles(AdministratorRoles.Admin),
-      this.adminstratorController.getAccounts,
+      this.controller.getAccounts,
     );
 
     // refresh token
-    this.router.post(
-      `${this.path}/refreshToken`,
-      this.adminstratorController.refreshToken,
-    );
+    this.router.post(`${this.path}/refreshToken`, this.controller.refreshToken);
   }
 }

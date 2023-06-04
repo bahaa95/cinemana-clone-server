@@ -1,4 +1,3 @@
-import { IRouter, Router as router } from 'express';
 import { Router } from '@/static/router';
 import { verifyJwt } from '@/middleware/verifyJwt';
 import { verifyRoles } from '@/middleware/verifyRoles';
@@ -11,20 +10,10 @@ import {
   deleteSeasonSchema,
 } from '../validation';
 
-export class SeasonRouter extends Router {
-  protected readonly path = '/admin/dashboard/seasons';
-  protected readonly router: IRouter;
-  private readonly seasonController: ISeasonController;
-
-  constructor(_seasonController: ISeasonController) {
-    super();
-    this.seasonController = _seasonController;
-    this.router = router();
+export class SeasonRouter extends Router<ISeasonController> {
+  constructor(seasonController: ISeasonController) {
+    super('/admin/dashboard/seasons', seasonController);
     this.initializeRoutes();
-  }
-
-  public getRoutes(): IRouter {
-    return this.router;
   }
 
   protected initializeRoutes(): void {
@@ -34,8 +23,8 @@ export class SeasonRouter extends Router {
       verifyJwt,
       verifyRoles(AdministratorRoles.Admin, AdministratorRoles.Data_Admin),
       validateResource(addSeasonSchema),
-      this.seasonController.mustBeSeries,
-      this.seasonController.addSeason,
+      this.controller.mustBeSeries,
+      this.controller.addSeason,
     );
 
     // * edit season
@@ -44,7 +33,7 @@ export class SeasonRouter extends Router {
       verifyJwt,
       verifyRoles(AdministratorRoles.Admin, AdministratorRoles.Data_Admin),
       validateResource(editSeasonSchema),
-      this.seasonController.editSeason,
+      this.controller.editSeason,
     );
 
     // * delete season
@@ -53,7 +42,7 @@ export class SeasonRouter extends Router {
       verifyJwt,
       verifyRoles(AdministratorRoles.Admin, AdministratorRoles.Data_Admin),
       validateResource(deleteSeasonSchema),
-      this.seasonController.deleteSeason,
+      this.controller.deleteSeason,
     );
 
     // * get all seasons
@@ -61,7 +50,7 @@ export class SeasonRouter extends Router {
       this.path,
       verifyJwt,
       verifyRoles(AdministratorRoles.Admin, AdministratorRoles.Data_Admin),
-      this.seasonController.getSeasons,
+      this.controller.getSeasons,
     );
   }
 }

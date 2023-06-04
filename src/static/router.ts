@@ -1,9 +1,16 @@
-import { IRouter } from 'express';
+import { IRouter, Router as router } from 'express';
 
-export abstract class Router {
-  protected abstract readonly path: string;
-  protected abstract readonly router: IRouter;
+export abstract class Router<Controller> {
+  protected readonly path: string;
+  protected readonly router: IRouter;
+  protected readonly controller: Controller;
 
-  public abstract getRoutes(): IRouter;
+  constructor(path: string, controller: Controller) {
+    this.path = path;
+    this.router = router();
+    this.controller = controller;
+  }
+
+  public getRoutes = () => this.router;
   protected abstract initializeRoutes(): void;
 }

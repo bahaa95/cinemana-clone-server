@@ -1,4 +1,3 @@
-import { IRouter, Router as router } from 'express';
 import { Router } from '@/static/router';
 import { verifyJwt } from '@/middleware/verifyJwt';
 import { verifyRoles } from '@/middleware/verifyRoles';
@@ -13,20 +12,10 @@ import {
   getGroupAndVideosSchema,
 } from '../validation';
 
-export class GroupRouter extends Router {
-  protected path = '/groups';
-  protected router: IRouter;
-  private readonly groupController: IGroupController;
-
-  constructor(_groupController: IGroupController) {
-    super();
-    this.router = router();
-    this.groupController = _groupController;
+export class GroupRouter extends Router<IGroupController> {
+  constructor(groupController: IGroupController) {
+    super('/groups', groupController);
     this.initializeRoutes();
-  }
-
-  public getRoutes(): IRouter {
-    return this.router;
   }
 
   protected initializeRoutes(): void {
@@ -40,7 +29,7 @@ export class GroupRouter extends Router {
       verifyJwt,
       verifyRoles(AdministratorRoles.Admin, AdministratorRoles.Data_Admin),
       validateResource(addGroupSchema),
-      this.groupController.addGroup,
+      this.controller.addGroup,
     );
 
     // edit group
@@ -49,7 +38,7 @@ export class GroupRouter extends Router {
       verifyJwt,
       verifyRoles(AdministratorRoles.Admin, AdministratorRoles.Data_Admin),
       validateResource(editGroupSchema),
-      this.groupController.editGroup,
+      this.controller.editGroup,
     );
 
     // delete group
@@ -58,7 +47,7 @@ export class GroupRouter extends Router {
       verifyJwt,
       verifyRoles(AdministratorRoles.Admin, AdministratorRoles.Data_Admin),
       validateResource(deleteGroupSchema),
-      this.groupController.deleteGroup,
+      this.controller.deleteGroup,
     );
 
     // get groups
@@ -70,7 +59,7 @@ export class GroupRouter extends Router {
         AdministratorRoles.Data_Admin,
         AdministratorRoles.Viewers,
       ),
-      this.groupController.getGroups,
+      this.controller.getGroups,
     );
 
     // get group with video
@@ -82,7 +71,7 @@ export class GroupRouter extends Router {
         AdministratorRoles.Data_Admin,
         AdministratorRoles.Viewers,
       ),
-      this.groupController.getGroupWithVideos,
+      this.controller.getGroupWithVideos,
     );
 
     /**
@@ -94,14 +83,14 @@ export class GroupRouter extends Router {
       `${this.path}/_id/:_id`,
       limiter(),
       validateResource(getGroupAndVideosSchema),
-      this.groupController.getGroupWithVideos,
+      this.controller.getGroupWithVideos,
     );
 
     // get groups with videos
     this.router.get(
       `${this.path}`,
       limiter({ max: 100 }),
-      this.groupController.getGroupsWithVideos,
+      this.controller.getGroupsWithVideos,
     );
   }
 }

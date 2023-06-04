@@ -17,20 +17,10 @@ import {
 } from '../validation';
 import { AdministratorRoles } from '@/features/administrators';
 
-export class StaffRouter extends Router {
-  protected readonly path = '/staff/person';
-  protected readonly router: IRouter;
-  private readonly staffController: IStaffController;
-
-  constructor(_staffController: IStaffController) {
-    super();
-    this.router = router();
-    this.staffController = _staffController;
+export class StaffRouter extends Router<IStaffController> {
+  constructor(staffController: IStaffController) {
+    super('/staff/person', staffController);
     this.initializeRoutes();
-  }
-
-  public getRoutes(): IRouter {
-    return this.router;
   }
 
   protected initializeRoutes(): void {
@@ -45,7 +35,7 @@ export class StaffRouter extends Router {
       handleSingleImage('image'),
       ValidateFile(),
       validateResource(addStaffSchema),
-      this.staffController.addPerson,
+      this.controller.addPerson,
     );
 
     // edit person
@@ -55,7 +45,7 @@ export class StaffRouter extends Router {
       verifyRoles(AdministratorRoles.Admin, AdministratorRoles.Data_Admin),
       handleSingleImage('image'),
       validateResource(editStaffSchema),
-      this.staffController.editPerson,
+      this.controller.editPerson,
     );
 
     // delete person
@@ -64,7 +54,7 @@ export class StaffRouter extends Router {
       verifyJwt,
       verifyRoles(AdministratorRoles.Admin, AdministratorRoles.Data_Admin),
       validateResource(deleteStaffSchema),
-      this.staffController.deletePerson,
+      this.controller.deletePerson,
     );
 
     // get staff
@@ -76,7 +66,7 @@ export class StaffRouter extends Router {
         AdministratorRoles.Data_Admin,
         AdministratorRoles.Viewers,
       ),
-      this.staffController.getStaff,
+      this.controller.getStaff,
     );
 
     // get staff by role
@@ -89,7 +79,7 @@ export class StaffRouter extends Router {
         AdministratorRoles.Viewers,
       ),
       validateResource(getStaffByRoleSchema),
-      this.staffController.getStaffByRole,
+      this.controller.getStaffByRole,
     );
 
     // get person
@@ -102,7 +92,7 @@ export class StaffRouter extends Router {
         AdministratorRoles.Viewers,
       ),
       validateResource(getPersonSchema),
-      this.staffController.getPerson,
+      this.controller.getPerson,
     );
 
     /**
@@ -113,7 +103,7 @@ export class StaffRouter extends Router {
       `${this.path}/:_id`,
       limiter(),
       validateResource(getPersonAndVideosSchema),
-      this.staffController.getPersonAndVideos,
+      this.controller.getPersonAndVideos,
     );
   }
 }

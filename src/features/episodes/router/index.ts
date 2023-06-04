@@ -1,4 +1,3 @@
-import { IRouter, Router as router } from 'express';
 import { Router } from '@/static/router';
 import { verifyJwt } from '@/middleware/verifyJwt';
 import { verifyRoles } from '@/middleware/verifyRoles';
@@ -13,20 +12,10 @@ import {
 } from '../validation';
 import { AdministratorRoles } from '@/features/administrators';
 
-export class EpisodeRouter extends Router {
-  protected path = '/admin/dashboard/episodes';
-  protected router: IRouter;
-  private readonly episodesController: IEpisodeController;
-
-  constructor(_epidoesController: IEpisodeController) {
-    super();
-    this.router = router();
-    this.episodesController = _epidoesController;
+export class EpisodeRouter extends Router<IEpisodeController> {
+  constructor(epidoesController: IEpisodeController) {
+    super('/admin/dashboard/episodes', epidoesController);
     this.initializeRoutes();
-  }
-
-  public getRoutes(): IRouter {
-    return this.router;
   }
 
   protected initializeRoutes(): void {
@@ -38,7 +27,7 @@ export class EpisodeRouter extends Router {
       handleSingleImage('image'),
       ValidateFile('There is no image file. please upload image for episode.'),
       validateResource(addEpisodeSchema),
-      this.episodesController.addEpisode,
+      this.controller.addEpisode,
     );
 
     // * edit episode
@@ -48,7 +37,7 @@ export class EpisodeRouter extends Router {
       verifyRoles(AdministratorRoles.Admin, AdministratorRoles.Data_Admin),
       handleSingleImage('image'),
       validateResource(editEpisodeSchema),
-      this.episodesController.editEpisode,
+      this.controller.editEpisode,
     );
 
     // * delete episode
@@ -57,7 +46,7 @@ export class EpisodeRouter extends Router {
       verifyJwt,
       verifyRoles(AdministratorRoles.Admin, AdministratorRoles.Data_Admin),
       validateResource(deleteEpisodeSchema),
-      this.episodesController.deleteEpisode,
+      this.controller.deleteEpisode,
     );
   }
 }

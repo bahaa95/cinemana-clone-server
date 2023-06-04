@@ -7,20 +7,10 @@ import { IStaffRoleController } from '../controller';
 import { addRoleSchema, editRoleSchema, deleteRoleSchema } from '../validation';
 import { AdministratorRoles } from '@/features/administrators';
 
-export class StaffRoleRouter extends Router {
-  protected readonly path = '/admin/dashboard/staff/roles';
-  protected readonly router: IRouter;
-  private readonly staffRoleController: IStaffRoleController;
-
-  constructor(_controller: IStaffRoleController) {
-    super();
-    this.router = router();
-    this.staffRoleController = _controller;
+export class StaffRoleRouter extends Router<IStaffRoleController> {
+  constructor(staffRoleController: IStaffRoleController) {
+    super('/admin/dashboard/staff/roles', staffRoleController);
     this.initializeRoutes();
-  }
-
-  public getRoutes(): IRouter {
-    return this.router;
   }
 
   protected initializeRoutes(): void {
@@ -30,7 +20,7 @@ export class StaffRoleRouter extends Router {
       verifyJwt,
       verifyRoles(AdministratorRoles.Admin, AdministratorRoles.Data_Admin),
       validateResource(addRoleSchema),
-      this.staffRoleController.addRole,
+      this.controller.addRole,
     );
 
     // edit role
@@ -39,7 +29,7 @@ export class StaffRoleRouter extends Router {
       verifyJwt,
       verifyRoles(AdministratorRoles.Admin, AdministratorRoles.Data_Admin),
       validateResource(editRoleSchema),
-      this.staffRoleController.editRole,
+      this.controller.editRole,
     );
 
     // delete role
@@ -48,7 +38,7 @@ export class StaffRoleRouter extends Router {
       verifyJwt,
       verifyRoles(AdministratorRoles.Admin, AdministratorRoles.Data_Admin),
       validateResource(deleteRoleSchema),
-      this.staffRoleController.deleteRole,
+      this.controller.deleteRole,
     );
 
     // get roles
@@ -60,7 +50,7 @@ export class StaffRoleRouter extends Router {
         AdministratorRoles.Data_Admin,
         AdministratorRoles.Viewers,
       ),
-      this.staffRoleController.getRoles,
+      this.controller.getRoles,
     );
   }
 }
